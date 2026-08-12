@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mi Nevera</title>
+<style>
+  :root{
+    --bg: #F6F4EE;
+    --card: #FFFFFF;
+    --ink: #2B2B26;
+    --ink-soft: #6B6A62;
+    --sage: #5F7D53;
+    --sage-light: #E7EEE2;
+    --coral: #E0603D;
+    --coral-light: #FBE7E0;
+    --line: #E5E2D8;
+    --radius: 16px;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    background: var(--bg);
+    position:relative;
+  }
+
+  header{
+    padding: 28px 20px 16px;
+    text-align:center;
+  }
+  header .magnet{
+    width:10px; height:10px; border-radius:50%;
+    background: var(--coral);
+    display:inline-block;
+    margin-bottom:10px;
+  }
+  header h1{
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.2px;
+    margin: 0;
+  }
+  header p{
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  nav{
+    display:flex;
+    margin: 4px 20px 18px;
+    background: var(--card);
+    border-radius: 999px;
+    padding: 4px;
+    border: 1px solid var(--line);
+  }
+  nav button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding: 10px 8px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor:pointer;
+    transition: all 0.18s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  nav button.active{
+    background: var(--sage);
+    color: white;
+  }
+  nav button .count{
+    font-size:11px;
+    background: rgba(0,0,0,0.12);
+    padding: 1px 7px;
+    border-radius: 999px;
+    min-width: 18px;
+    text-align:center;
+  }
+  nav button.active .count{ background: rgba(255,255,255,0.25); }
+  nav button:not(.active) .count.coral{ background: var(--coral-light); color: var(--coral); }
+
+  main{
+    flex:1;
+    padding: 0 20px 100px;
+    overflow-y:auto;
+  }
+
+  .list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .item{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    animation: pop 0.25s ease;
+  }
+  @keyframes pop{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .item .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--sage);
+    flex-shrink:0;
+  }
+  .item.shop .dot{ background: var(--coral); }
+  .item .name{
+    flex:1;
+    font-size: 15.5px;
+    font-weight: 500;
+    word-break: break-word;
+  }
+  .item button.action{
+    border:none;
+    background: var(--sage-light);
+    color: var(--sage);
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .item.shop button.action{
+    background: var(--coral-light);
+    color: var(--coral);
+  }
+  .item button.del{
+    border:none;
+    background:transparent;
+    color: var(--ink-soft);
+    font-size: 18px;
+    line-height:1;
+    cursor:pointer;
+    padding: 4px 2px;
+    flex-shrink:0;
+    opacity: 0.5;
+  }
+
+  .empty{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+  }
+  .empty .big{
+    font-size: 40px;
+    margin-bottom: 8px;
+  }
+  .empty p{ font-size: 14px; margin: 4px 0; }
+
+  .addbar{
+    position:fixed;
+    bottom:0;
+    left:0; right:0;
+    display:flex;
+    justify-content:center;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 60%, transparent);
+  }
+  .addbar-inner{
+    width:100%;
+    max-width: 480px;
+    display:flex;
+    gap:8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 6px 6px 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .addbar input{
+    flex:1;
+    border:none;
+    outline:none;
+    font-size: 15px;
+    background:transparent;
+    color: var(--ink);
+  }
+  .addbar input::placeholder{ color: var(--ink-soft); }
+  .addbar button{
+    border:none;
+    background: var(--sage);
+    color:white;
+    width: 40px; height:40px;
+    border-radius:50%;
+    font-size: 20px;
+    cursor:pointer;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .addbar.shop button{ background: var(--coral); }
+
+  #status{
+    position:fixed;
+    top:14px; left:50%;
+    transform: translateX(-50%) translateY(-40px);
+    background: var(--ink);
+    color: white;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    opacity:0;
+    transition: all 0.25s ease;
+    z-index: 50;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  #status.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  .loading{
+    text-align:center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+
+  .connbadge{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:11px;
+    color: var(--ink-soft);
+    margin-top:4px;
+  }
+  .connbadge .led{
+    width:6px; height:6px; border-radius:50%;
+    background:#c9c5b8;
+  }
+  .connbadge.online .led{ background: var(--sage); }
+  .connbadge.offline .led{ background: var(--coral); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="status"></div>
+  <header>
+    <span class="magnet"></span>
+    <h1>Mi Nevera</h1>
+    <p id="subtitle">Cargando...</p>
+    <div class="connbadge" id="connbadge"><span class="led"></span><span id="connlabel">Conectando...</span></div>
+  </header>
+
+  <nav>
+    <button id="tab-fridge" class="active">🧊 Nevera <span class="count" id="count-fridge">0</span></button>
+    <button id="tab-shop">🛒 Compra <span class="count coral" id="count-shop">0</span></button>
+  </nav>
+
+  <main id="main">
+    <div class="loading">Cargando tu nevera...</div>
+  </main>
+
+  <div class="addbar" id="addbar">
+    <div class="addbar-inner">
+      <input id="addInput" type="text" placeholder="Añadir producto..." autocomplete="off">
+      <button id="addBtn">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK (versión compat, funciona con simple <script>, sin necesidad de npm) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+// ==== CONFIGURACIÓN DE FIREBASE (tu proyecto real) ====
+const firebaseConfig = {
+  apiKey: "AIzaSyAg_aX9Fj7oCx1g8PBO9o7pme34B1OqCSE",
+  authDomain: "mi-nevera-600dd.firebaseapp.com",
+  databaseURL: "https://mi-nevera-600dd-default-rtdb.firebaseio.com",
+  projectId: "mi-nevera-600dd",
+  storageBucket: "mi-nevera-600dd.firebasestorage.app",
+  messagingSenderId: "318222989503",
+  appId: "1:318222989503:web:de450ee415c8f6d1e3ae0a"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const dataRef = db.ref('nevera-data');
+
+let state = { fridge: [], shopping: [] };
+let currentTab = 'fridge';
+let loaded = false;
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function showStatus(msg){
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=> el.classList.remove('show'), 1400);
+}
+
+function setConn(mode){
+  const badge = document.getElementById('connbadge');
+  const label = document.getElementById('connlabel');
+  badge.classList.remove('online','offline');
+  if(mode === 'online'){
+    badge.classList.add('online');
+    label.textContent = 'Sincronizado';
+  } else if(mode === 'offline'){
+    badge.classList.add('offline');
+    label.textContent = 'Sin conexión';
+  } else {
+    label.textContent = 'Conectando...';
+  }
+}
+
+// Escucha cambios en tiempo real: si otra persona edita la lista, se actualiza sola aquí también
+dataRef.on('value', (snapshot) => {
+  const val = snapshot.val();
+  if(val){
+    state = {
+      fridge: val.fridge ? Object.values(val.fridge) : [],
+      shopping: val.shopping ? Object.values(val.shopping) : []
+    };
+  } else {
+    state = { fridge: [], shopping: [] };
+  }
+  loaded = true;
+  document.getElementById('subtitle').textContent = 'Toca un producto cuando se acabe';
+  render();
+});
+
+db.ref('.info/connected').on('value', (snap) => {
+  setConn(snap.val() === true ? 'online' : 'offline');
+});
+
+function saveState(){
+  // Convertimos los arrays a objetos indexados por id, formato recomendado en Realtime Database
+  const fridgeObj = {};
+  state.fridge.forEach(item => fridgeObj[item.id] = item);
+  const shoppingObj = {};
+  state.shopping.forEach(item => shoppingObj[item.id] = item);
+
+  dataRef.set({ fridge: fridgeObj, shopping: shoppingObj }).catch(()=>{
+    showStatus('No se pudo guardar. Revisa tu conexión.');
+  });
+}
+
+function addFridgeItem(name){
+  name = name.trim();
+  if(!name) return;
+  state.fridge.push({ id: uid(), name });
+  saveState();
+}
+
+function addShopItem(name){
+  name = name.trim();
+  if(!name) return;
+  state.shopping.push({ id: uid(), name });
+  saveState();
+}
+
+function moveToShopping(id){
+  const idx = state.fridge.findIndex(i => i.id === id);
+  if(idx === -1) return;
+  const item = state.fridge[idx];
+  state.fridge.splice(idx,1);
+  state.shopping.push({ id: uid(), name: item.name });
+  saveState();
+  showStatus(`"${item.name}" añadido a la lista de compra`);
+}
+
+function markBought(id){
+  const idx = state.shopping.findIndex(i => i.id === id);
+  if(idx === -1) return;
+  const item = state.shopping[idx];
+  state.shopping.splice(idx,1);
+  state.fridge.push({ id: uid(), name: item.name });
+  saveState();
+  showStatus(`"${item.name}" de vuelta en la nevera`);
+}
+
+function deleteItem(list, id){
+  state[list] = state[list].filter(i => i.id !== id);
+  saveState();
+}
+
+function render(){
+  document.getElementById('count-fridge').textContent = state.fridge.length;
+  document.getElementById('count-shop').textContent = state.shopping.length;
+
+  const main = document.getElementById('main');
+  const addbar = document.getElementById('addbar');
+  const addInput = document.getElementById('addInput');
+
+  if(!loaded){
+    main.innerHTML = '<div class="loading">Cargando tu nevera...</div>';
+    return;
+  }
+
+  if(currentTab === 'fridge'){
+    addbar.classList.remove('shop');
+    addInput.placeholder = 'Añadir producto a la nevera...';
+    if(state.fridge.length === 0){
+      main.innerHTML = `<div class="empty"><div class="big">🧊</div><p>Tu nevera está vacía.</p><p>Añade lo que tengas ahí abajo.</p></div>`;
+      return;
+    }
+    main.innerHTML = `<div class="list">${state.fridge.map(item => `
+      <div class="item" data-id="${item.id}">
+        <span class="dot"></span>
+        <span class="name">${escapeHtml(item.name)}</span>
+        <button class="action" data-action="out" data-id="${item.id}">Se acabó</button>
+        <button class="del" data-action="del-fridge" data-id="${item.id}">✕</button>
+      </div>
+    `).join('')}</div>`;
+  } else {
+    addbar.classList.add('shop');
+    addInput.placeholder = 'Añadir a la lista de compra...';
+    if(state.shopping.length === 0){
+      main.innerHTML = `<div class="empty"><div class="big">🛒</div><p>Nada por comprar.</p><p>Cuando algo se acabe en la nevera, aparecerá aquí.</p></div>`;
+      return;
+    }
+    main.innerHTML = `<div class="list">${state.shopping.map(item => `
+      <div class="item shop" data-id="${item.id}">
+        <span class="dot"></span>
+        <span class="name">${escapeHtml(item.name)}</span>
+        <button class="action" data-action="bought" data-id="${item.id}">Comprado</button>
+        <button class="del" data-action="del-shop" data-id="${item.id}">✕</button>
+      </div>
+    `).join('')}</div>`;
+  }
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+document.getElementById('tab-fridge').addEventListener('click', ()=>{
+  currentTab = 'fridge';
+  document.getElementById('tab-fridge').classList.add('active');
+  document.getElementById('tab-shop').classList.remove('active');
+  render();
+});
+document.getElementById('tab-shop').addEventListener('click', ()=>{
+  currentTab = 'shop';
+  document.getElementById('tab-shop').classList.add('active');
+  document.getElementById('tab-fridge').classList.remove('active');
+  render();
+});
+
+document.getElementById('main').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+  if(action === 'out') moveToShopping(id);
+  else if(action === 'bought') markBought(id);
+  else if(action === 'del-fridge') deleteItem('fridge', id);
+  else if(action === 'del-shop') deleteItem('shopping', id);
+});
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const val = document.getElementById('addInput').value;
+  if(currentTab === 'fridge') addFridgeItem(val);
+  else addShopItem(val);
+  document.getElementById('addInput').value = '';
+  document.getElementById('addInput').focus();
+});
+document.getElementById('addInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    document.getElementById('addBtn').click();
+  }
+});
+</script>
+</body>
+</html>
