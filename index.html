@@ -452,22 +452,36 @@
   }
   .header-actions{
     position:absolute;
-    top: 26px;
-    right: 18px;
+    top: 20px;
+    right: 14px;
     display:flex;
-    gap:8px;
+    gap:10px;
   }
   .icon-btn{
     border:none;
+    background:transparent;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    padding:2px;
+  }
+  .icon-btn .circle{
+    width: 32px; height:32px;
     background: var(--card);
     border: 1px solid var(--line);
-    width: 32px; height:32px;
     border-radius: 50%;
-    cursor:pointer;
     font-size: 14px;
     display:flex;
     align-items:center;
     justify-content:center;
+  }
+  .icon-btn .caption{
+    font-size: 9.5px;
+    font-weight:600;
+    color: var(--ink-soft);
+    white-space:nowrap;
   }
 
   .legal-footer{
@@ -521,9 +535,18 @@
   <div id="status"></div>
 
   <div class="header-actions" id="headerActions" style="display:none;">
-    <button class="icon-btn" id="helpBtn" title="Cómo funciona">❓</button>
-    <button class="icon-btn" id="codeBtn" title="Código de tu nevera">🔑</button>
-    <button class="icon-btn" id="logoutBtn" title="Cerrar sesión">⎋</button>
+    <button class="icon-btn" id="helpBtn" title="Cómo funciona">
+      <span class="circle">❓</span>
+      <span class="caption">Ayuda</span>
+    </button>
+    <button class="icon-btn" id="codeBtn" title="Código de tu nevera">
+      <span class="circle">🔑</span>
+      <span class="caption">Código</span>
+    </button>
+    <button class="icon-btn" id="logoutBtn" title="Cerrar sesión">
+      <span class="circle">⎋</span>
+      <span class="caption">Salir</span>
+    </button>
   </div>
 
   <header>
@@ -1189,7 +1212,7 @@ Hablas siempre en español, de forma cálida y breve.
 En la nevera (productos frescos/perecederos) el usuario tiene: ${fridgeList}.
 En la alacena (productos no perecederos: enlatados, pastas, arroz, condimentos, etc.) el usuario tiene: ${pantryList}.
 La hora actual es las ${hour}:00, lo que sugiere que podría ser hora de: ${mealNow}.
-Cuando el usuario te pida una receta (desayuno, almuerzo, merienda, cena o picada), proponle una receta concreta usando principalmente lo que tiene en la nevera y la alacena combinadas. Si le falta algún ingrediente básico (sal, aceite, algún condimento) puedes asumir que lo tiene. Si falta algo importante que no está en ninguna de las dos listas, sugiérelo como opcional.
+Cuando el usuario te pida una receta (desayuno, almuerzo, merienda, cena o picada), proponle una receta concreta usando principalmente lo que tiene en la nevera y la alacena combinadas. Al presentar la receta, menciona explícitamente que la armaste con lo que hay en su nevera y su alacena (no digas solo "nevera", menciona ambas). Si le falta algún ingrediente básico (sal, aceite, algún condimento) puedes asumir que lo tiene. Si falta algo importante que no está en ninguna de las dos listas, sugiérelo como opcional.
 Da la receta en formato simple: nombre del plato, ingredientes con cantidades aproximadas, y pasos numerados cortos. No uses markdown con asteriscos, solo texto plano con saltos de línea.
 Si el usuario solo saluda o charla, responde de forma breve y amistosa, y pregúntale qué comida quiere armar.`;
 
