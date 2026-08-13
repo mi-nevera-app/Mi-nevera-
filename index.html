@@ -256,6 +256,69 @@
   }
   .connbadge.online .led{ background: var(--sage); }
   .connbadge.offline .led{ background: var(--coral); }
+
+  /* ---- Chef IA ---- */
+  .chef-wrap{
+    display:flex;
+    flex-direction:column;
+    height: calc(100vh - 190px);
+  }
+  .chef-messages{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding-bottom: 12px;
+  }
+  .chef-msg{
+    max-width: 85%;
+    padding: 12px 14px;
+    border-radius: 16px;
+    font-size: 14.5px;
+    line-height:1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .chef-msg.user{
+    align-self:flex-end;
+    background: var(--sage);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .chef-msg.bot{
+    align-self:flex-start;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+  }
+  .chef-msg.bot.thinking{
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .chef-suggestions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding: 4px 0 12px;
+  }
+  .chef-chip{
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor:pointer;
+  }
+  .chef-chip:active{ background: var(--sage-light); }
+  .chef-empty{
+    text-align:center;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+  }
+  .chef-empty .big{ font-size:40px; margin-bottom:8px; }
 </style>
 </head>
 <body>
@@ -271,6 +334,7 @@
   <nav>
     <button id="tab-fridge" class="active">🧊 Nevera <span class="count" id="count-fridge">0</span></button>
     <button id="tab-shop">🛒 Compra <span class="count coral" id="count-shop">0</span></button>
+    <button id="tab-chef">👨‍🍳 Chef IA</button>
   </nav>
 
   <main id="main">
@@ -281,6 +345,13 @@
     <div class="addbar-inner">
       <input id="addInput" type="text" placeholder="Añadir producto..." autocomplete="off">
       <button id="addBtn">+</button>
+    </div>
+  </div>
+
+  <div class="addbar" id="chefbar" style="display:none;">
+    <div class="addbar-inner">
+      <input id="chefInput" type="text" placeholder="Ej: hazme algo para el almuerzo..." autocomplete="off">
+      <button id="chefBtn">➤</button>
     </div>
   </div>
 </div>
@@ -305,9 +376,16 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const dataRef = db.ref('nevera-data');
 
+// ==== CLAVE DE GEMINI (Chef IA) ====
+const GEMINI_API_KEY = "AQ.Ab8RN6L5VlP_tdAIfFwUTruGYI0A7OA1kt7Kq0QFKT48lI5JVw";
+const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
 let state = { fridge: [], shopping: [] };
 let currentTab = 'fridge';
 let loaded = false;
+let chefMessages = []; // {role: 'user'|'model', text: '...'}
+let chefLoading = false;
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
@@ -417,6 +495,11 @@ function render(){
     return;
   }
 
+  if(currentTab === 'chef'){
+    renderChef();
+    return;
+  }
+
   if(currentTab === 'fridge'){
     addbar.classList.remove('shop');
     addInput.placeholder = 'Añadir producto a la nevera...';
@@ -456,18 +539,19 @@ function escapeHtml(str){
   return d.innerHTML;
 }
 
-document.getElementById('tab-fridge').addEventListener('click', ()=>{
-  currentTab = 'fridge';
-  document.getElementById('tab-fridge').classList.add('active');
-  document.getElementById('tab-shop').classList.remove('active');
+function setActiveTab(tab){
+  currentTab = tab;
+  document.getElementById('tab-fridge').classList.toggle('active', tab==='fridge');
+  document.getElementById('tab-shop').classList.toggle('active', tab==='shop');
+  document.getElementById('tab-chef').classList.toggle('active', tab==='chef');
+  document.getElementById('addbar').style.display = (tab==='chef') ? 'none' : 'flex';
+  document.getElementById('chefbar').style.display = (tab==='chef') ? 'flex' : 'none';
   render();
-});
-document.getElementById('tab-shop').addEventListener('click', ()=>{
-  currentTab = 'shop';
-  document.getElementById('tab-shop').classList.add('active');
-  document.getElementById('tab-fridge').classList.remove('active');
-  render();
-});
+}
+
+document.getElementById('tab-fridge').addEventListener('click', ()=> setActiveTab('fridge'));
+document.getElementById('tab-shop').addEventListener('click', ()=> setActiveTab('shop'));
+document.getElementById('tab-chef').addEventListener('click', ()=> setActiveTab('chef'));
 
 document.getElementById('main').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
@@ -491,6 +575,129 @@ document.getElementById('addInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter'){
     e.preventDefault();
     document.getElementById('addBtn').click();
+  }
+});
+
+// ==== CHEF IA ====
+
+function getMealSuggestion(){
+  const hour = new Date().getHours();
+  if(hour >= 6 && hour < 11) return 'desayuno';
+  if(hour >= 11 && hour < 15) return 'almuerzo';
+  if(hour >= 15 && hour < 18) return 'merienda';
+  if(hour >= 18 && hour < 23) return 'cena';
+  return 'picada';
+}
+
+function renderChef(){
+  const main = document.getElementById('main');
+  const mealNow = getMealSuggestion();
+
+  if(chefMessages.length === 0){
+    main.innerHTML = `
+      <div class="chef-empty">
+        <div class="big">👨‍🍳</div>
+        <p>Contame qué tenés ganas de comer y armo algo con lo que hay en tu nevera.</p>
+        <p style="font-size:12.5px;">Ahora mismo parece buena hora para: <strong>${mealNow}</strong></p>
+      </div>
+      <div class="chef-suggestions">
+        <button class="chef-chip" data-meal="desayuno">🥐 Desayuno</button>
+        <button class="chef-chip" data-meal="almuerzo">🍽️ Almuerzo</button>
+        <button class="chef-chip" data-meal="merienda">☕ Merienda</button>
+        <button class="chef-chip" data-meal="cena">🌙 Cena</button>
+        <button class="chef-chip" data-meal="picada">🧀 Picada</button>
+      </div>
+    `;
+    main.querySelectorAll('.chef-chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        const meal = chip.dataset.meal;
+        sendChefMessage(`Quiero que me armes una receta de ${meal} con lo que tengo en la nevera.`);
+      });
+    });
+    return;
+  }
+
+  const msgsHtml = chefMessages.map(m => `
+    <div class="chef-msg ${m.role === 'user' ? 'user' : 'bot'}">${escapeHtml(m.text)}</div>
+  `).join('');
+
+  const thinkingHtml = chefLoading ? `<div class="chef-msg bot thinking">Pensando una receta...</div>` : '';
+
+  main.innerHTML = `<div class="chef-wrap"><div class="chef-messages" id="chefMessagesEl">${msgsHtml}${thinkingHtml}</div></div>`;
+
+  const el = document.getElementById('chefMessagesEl');
+  if(el) el.scrollTop = el.scrollHeight;
+}
+
+async function sendChefMessage(text){
+  text = text.trim();
+  if(!text || chefLoading) return;
+
+  chefMessages.push({ role:'user', text });
+  render();
+
+  chefLoading = true;
+  render();
+
+  try{
+    const reply = await askChef(text);
+    chefMessages.push({ role:'model', text: reply });
+  }catch(err){
+    chefMessages.push({ role:'model', text: 'Uy, no pude conectarme a la IA. Revisa tu conexión e intenta de nuevo.' });
+  }
+  chefLoading = false;
+  render();
+}
+
+async function askChef(userText){
+  const hour = new Date().getHours();
+  const mealNow = getMealSuggestion();
+  const fridgeList = state.fridge.map(i => i.name).join(', ') || '(la nevera está vacía por ahora)';
+
+  const systemInstruction = `Eres "Chef IA", un asistente de cocina amigable dentro de una app llamada "Mi Nevera". 
+Hablas siempre en español, de forma cálida y breve.
+Estos son los productos que el usuario tiene actualmente en su nevera: ${fridgeList}.
+La hora actual es las ${hour}:00, lo que sugiere que podría ser hora de: ${mealNow}.
+Cuando el usuario te pida una receta (desayuno, almuerzo, merienda, cena o picada), proponle una receta concreta usando principalmente lo que tiene en la nevera. Si le falta algún ingrediente básico (sal, aceite, algún condimento) puedes asumir que lo tiene. Si falta algo importante que no está en la lista, sugiérelo como opcional.
+Da la receta en formato simple: nombre del plato, ingredientes con cantidades aproximadas, y pasos numerados cortos. No uses markdown con asteriscos, solo texto plano con saltos de línea.
+Si el usuario solo saluda o charla, responde de forma breve y amistosa, y pregúntale qué comida quiere armar.`;
+
+  const contents = chefMessages
+    .slice(0, -1) // el último ya lo mandamos aparte como turno actual
+    .map(m => ({ role: m.role, parts: [{ text: m.text }] }));
+
+  contents.push({ role: 'user', parts: [{ text: userText }] });
+
+  const body = {
+    systemInstruction: { parts: [{ text: systemInstruction }] },
+    contents: contents
+  };
+
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if(!res.ok){
+    throw new Error('Error de la API: ' + res.status);
+  }
+
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') 
+    || 'No se me ocurrió nada, ¿probamos de nuevo?';
+  return text;
+}
+
+document.getElementById('chefBtn').addEventListener('click', ()=>{
+  const val = document.getElementById('chefInput').value;
+  document.getElementById('chefInput').value = '';
+  sendChefMessage(val);
+});
+document.getElementById('chefInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    document.getElementById('chefBtn').click();
   }
 });
 </script>
