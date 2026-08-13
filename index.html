@@ -379,7 +379,7 @@ const dataRef = db.ref('nevera-data');
 // ==== CLAVE DE GEMINI (Chef IA) ====
 const GEMINI_API_KEY = "AQ.Ab8RN6L5VlP_tdAIfFwUTruGYI0A7OA1kt7Kq0QFKT48lI5JVw";
 const GEMINI_MODEL = "gemini-2.5-flash";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_MODEL_FALLBACK = "gemini-3.5-flash";
 
 let state = { fridge: [], shopping: [] };
 let currentTab = 'fridge';
@@ -649,6 +649,15 @@ async function sendChefMessage(text){
   render();
 }
 
+async function callGemini(modelName, body){
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
 async function askChef(userText){
   const hour = new Date().getHours();
   const mealNow = getMealSuggestion();
@@ -673,11 +682,12 @@ Si el usuario solo saluda o charla, responde de forma breve y amistosa, y pregú
     contents: contents
   };
 
-  const res = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  let res = await callGemini(GEMINI_MODEL, body);
+
+  if(res.status === 404){
+    // El nombre del modelo puede haber cambiado; probamos con el modelo de respaldo
+    res = await callGemini(GEMINI_MODEL_FALLBACK, body);
+  }
 
   if(!res.ok){
     throw new Error('Error de la API: ' + res.status);
