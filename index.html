@@ -528,24 +528,44 @@
     color: var(--ink-soft);
     line-height:1.4;
   }
+
+  .lang-select{
+    position:absolute;
+    top: 20px;
+    left: 14px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight:600;
+    border-radius: 999px;
+    padding: 5px 8px;
+    cursor:pointer;
+    outline:none;
+  }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="status"></div>
 
+  <select id="langSelect" class="lang-select">
+    <option value="es">🇪🇸 ES</option>
+    <option value="en">🇬🇧 EN</option>
+  </select>
+
   <div class="header-actions" id="headerActions" style="display:none;">
-    <button class="icon-btn" id="helpBtn" title="Cómo funciona">
+    <button class="icon-btn" id="helpBtn" title="Ayuda">
       <span class="circle">❓</span>
-      <span class="caption">Ayuda</span>
+      <span class="caption" id="captionHelp">Ayuda</span>
     </button>
-    <button class="icon-btn" id="codeBtn" title="Código de tu nevera">
+    <button class="icon-btn" id="codeBtn" title="Código">
       <span class="circle">🔑</span>
-      <span class="caption">Código</span>
+      <span class="caption" id="captionCode">Código</span>
     </button>
-    <button class="icon-btn" id="logoutBtn" title="Cerrar sesión">
+    <button class="icon-btn" id="logoutBtn" title="Salir">
       <span class="circle">⎋</span>
-      <span class="caption">Salir</span>
+      <span class="caption" id="captionLogout">Salir</span>
     </button>
   </div>
 
@@ -565,11 +585,11 @@
     <div class="auth-error" id="authError"></div>
 
     <div class="field">
-      <label>Email</label>
+      <label id="labelEmail">Email</label>
       <input type="email" id="authEmail" placeholder="tu@email.com" autocomplete="email">
     </div>
     <div class="field">
-      <label>Contraseña</label>
+      <label id="labelPassword">Contraseña</label>
       <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
 
@@ -577,7 +597,7 @@
 
     <p class="switch-link" id="authSwitchLink">¿No tienes cuenta? <a id="authSwitchAction">Crear una</a></p>
 
-    <p class="legal-footer">
+    <p class="legal-footer" id="legalFooter">
       Al continuar, aceptas los <a href="terminos.html" target="_blank">Términos de uso</a> y la <a href="privacidad.html" target="_blank">Política de privacidad</a>.
     </p>
   </div>
@@ -585,17 +605,17 @@
   <!-- ==== PANTALLA: CREAR O UNIRSE A NEVERA ==== -->
   <div class="screen" id="householdScreen" style="display:none;">
     <div class="icon">🧊</div>
-    <h2>¿Cómo quieres empezar?</h2>
-    <p class="sub">Crea tu propia nevera o únete a la de tu familia</p>
+    <h2 id="householdTitle">¿Cómo quieres empezar?</h2>
+    <p class="sub" id="householdSub">Crea tu propia nevera o únete a la de tu familia</p>
 
     <div class="auth-error" id="householdError"></div>
 
     <button class="btn-primary" id="createHouseholdBtn">Crear una nevera nueva</button>
 
-    <div class="divider">o</div>
+    <div class="divider" id="orWord">o</div>
 
     <div class="field">
-      <label>Código de invitación</label>
+      <label id="labelCode">Código de invitación</label>
       <input type="text" id="joinCodeInput" placeholder="Ej: AB3F9K" style="text-transform:uppercase;">
     </div>
     <button class="btn-secondary" id="joinHouseholdBtn">Unirme con código</button>
@@ -604,11 +624,11 @@
   <!-- ==== PANTALLA: VER CÓDIGO DE LA NEVERA ==== -->
   <div class="screen" id="codeScreen" style="display:none;">
     <div class="icon">🔑</div>
-    <h2>Código de tu nevera</h2>
-    <p class="sub">Compártelo con tu familia para que se unan a la misma nevera</p>
+    <h2 id="codeTitle">Código de tu nevera</h2>
+    <p class="sub" id="codeSub">Compártelo con tu familia para que se unan a la misma nevera</p>
     <div class="code-box">
       <div class="code" id="codeDisplay">------</div>
-      <div class="hint">Toca para copiar</div>
+      <div class="hint" id="codeHint">Toca para copiar</div>
     </div>
     <button class="btn-secondary" id="closeCodeBtn">Volver</button>
   </div>
@@ -616,48 +636,48 @@
   <!-- ==== PANTALLA: TUTORIAL / CÓMO FUNCIONA ==== -->
   <div class="screen" id="helpScreen" style="display:none;">
     <div class="icon">📖</div>
-    <h2>Cómo funciona</h2>
+    <h2 id="helpTitle">Cómo funciona</h2>
     <div class="help-steps">
       <div class="help-step">
         <div class="help-num">1</div>
         <div>
-          <strong>🧊 Añade lo que tengas</strong>
-          <p>En la pestaña Nevera, escribe uno o varios productos separados por coma (ej: "leche, huevos, pan") y toca +.</p>
+          <strong id="help1Title">🧊 Añade lo que tengas</strong>
+          <p id="help1Text">En la pestaña Nevera, escribe uno o varios productos separados por coma (ej: "leche, huevos, pan") y toca +.</p>
         </div>
       </div>
       <div class="help-step">
         <div class="help-num">2</div>
         <div>
-          <strong>🥫 Usa la Alacena para lo no perecedero</strong>
-          <p>Arroz, fideos, enlatados, condimentos... todo lo que no se guarda en frío va en su propia pestaña, separado de la nevera.</p>
+          <strong id="help2Title">🥫 Usa la Alacena para lo no perecedero</strong>
+          <p id="help2Text">Arroz, fideos, enlatados, condimentos... todo lo que no se guarda en frío va en su propia pestaña, separado de la nevera.</p>
         </div>
       </div>
       <div class="help-step">
         <div class="help-num">3</div>
         <div>
-          <strong>🧊🥫 Marca lo que se acabó</strong>
-          <p>Junto a cada producto (en Nevera o Alacena) hay un botón "Se acabó". Al tocarlo, pasa solo a la pestaña 🛒 Compra.</p>
+          <strong id="help3Title">🧊🥫 Marca lo que se acabó</strong>
+          <p id="help3Text">Junto a cada producto (en Nevera o Alacena) hay un botón "Se acabó". Al tocarlo, pasa solo a la pestaña 🛒 Compra.</p>
         </div>
       </div>
       <div class="help-step">
         <div class="help-num">4</div>
         <div>
-          <strong>🛒 Marca lo que ya compraste</strong>
-          <p>En la pestaña Compra vas a ver todo lo que falta comprar. Cuando lo tengas, toca el botón "Comprado" junto al producto y vuelve solo a donde corresponda (nevera o alacena).</p>
+          <strong id="help4Title">🛒 Marca lo que ya compraste</strong>
+          <p id="help4Text">En la pestaña Compra vas a ver todo lo que falta comprar. Cuando lo tengas, toca el botón "Comprado" junto al producto y vuelve solo a donde corresponda (nevera o alacena).</p>
         </div>
       </div>
       <div class="help-step">
         <div class="help-num">5</div>
         <div>
-          <strong>👨‍🍳 Pide ideas al Chef IA</strong>
-          <p>En la pestaña Chef IA, contale qué comida quieres (desayuno, almuerzo, cena...) y te arma una receta con lo que tienes en la nevera y la alacena.</p>
+          <strong id="help5Title">👨‍🍳 Pide ideas al Chef IA</strong>
+          <p id="help5Text">En la pestaña Chef IA, contale qué comida quieres (desayuno, almuerzo, cena...) y te arma una receta con lo que tienes en la nevera y la alacena.</p>
         </div>
       </div>
       <div class="help-step">
         <div class="help-num">6</div>
         <div>
-          <strong>🔑 Comparte tu nevera</strong>
-          <p>Toca el ícono 🔑 arriba para ver el código de tu nevera y compartirlo con tu familia.</p>
+          <strong id="help6Title">🔑 Comparte tu nevera</strong>
+          <p id="help6Text">Toca el ícono 🔑 arriba para ver el código de tu nevera y compartirlo con tu familia.</p>
         </div>
       </div>
     </div>
@@ -665,14 +685,14 @@
   </div>
 
   <nav id="mainNav" style="display:none;">
-    <button id="tab-fridge" class="active">🧊 Nevera <span class="count" id="count-fridge">0</span></button>
-    <button id="tab-pantry">🥫 Alacena <span class="count" id="count-pantry">0</span></button>
-    <button id="tab-shop">🛒 Compra <span class="count coral" id="count-shop">0</span></button>
-    <button id="tab-chef">👨‍🍳 Chef</button>
+    <button id="tab-fridge" class="active">🧊 <span id="tabFridgeLabel">Nevera</span> <span class="count" id="count-fridge">0</span></button>
+    <button id="tab-pantry">🥫 <span id="tabPantryLabel">Alacena</span> <span class="count" id="count-pantry">0</span></button>
+    <button id="tab-shop">🛒 <span id="tabShopLabel">Compra</span> <span class="count coral" id="count-shop">0</span></button>
+    <button id="tab-chef">👨‍🍳 <span id="tabChefLabel">Chef</span></button>
   </nav>
 
   <main id="main">
-    <div class="loading">Cargando...</div>
+    <div class="loading" id="initialLoading">Cargando...</div>
   </main>
 
   <div class="addbar" id="addbar" style="display:none;">
@@ -716,6 +736,141 @@ const GEMINI_API_KEY = "AQ.Ab8RN6L5VlP_tdAIfFwUTruGYI0A7OA1kt7Kq0QFKT48lI5JVw";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_MODEL_FALLBACK = "gemini-3.5-flash";
 
+// ==== IDIOMA / TRANSLATIONS ====
+const I18N = {
+  es: {
+    subtitleLoading: "Cargando...", subtitleReady: "Toca un producto cuando se acabe",
+    syncOnline: "Sincronizado", syncOffline: "Sin conexión", syncConnecting: "Conectando...",
+    captionHelp: "Ayuda", captionCode: "Código", captionLogout: "Salir",
+    authTitleLogin: "Iniciar sesión", authSubLogin: "Entra con tu cuenta para ver tu nevera",
+    authTitleSignup: "Crear cuenta", authSubSignup: "Registrate para armar tu nevera",
+    labelEmail: "Email", labelPassword: "Contraseña",
+    authSubmitLogin: "Iniciar sesión", authSubmitSignup: "Crear cuenta",
+    noAccount: "¿No tienes cuenta?", createOne: "Crear una",
+    hasAccount: "¿Ya tienes cuenta?", loginLink: "Inicia sesión",
+    legalFooter: 'Al continuar, aceptas los <a href="terminos.html" target="_blank">Términos de uso</a> y la <a href="privacidad.html" target="_blank">Política de privacidad</a>.',
+    householdTitle: "¿Cómo quieres empezar?", householdSub: "Crea tu propia nevera o únete a la de tu familia",
+    createHousehold: "Crear una nevera nueva", orWord: "o",
+    labelCode: "Código de invitación", joinHousehold: "Unirme con código",
+    codeTitle: "Código de tu nevera", codeSub: "Compártelo con tu familia para que se unan a la misma nevera",
+    codeHint: "Toca para copiar", back: "Volver",
+    helpTitle: "Cómo funciona", closeHelp: "Entendido",
+    help1Title: "🧊 Añade lo que tengas", help1Text: 'En la pestaña Nevera, escribe uno o varios productos separados por coma (ej: "leche, huevos, pan") y toca +.',
+    help2Title: "🥫 Usa la Alacena para lo no perecedero", help2Text: "Arroz, fideos, enlatados, condimentos... todo lo que no se guarda en frío va en su propia pestaña, separado de la nevera.",
+    help3Title: "🧊🥫 Marca lo que se acabó", help3Text: 'Junto a cada producto (en Nevera o Alacena) hay un botón "Se acabó". Al tocarlo, pasa solo a la pestaña 🛒 Compra.',
+    help4Title: "🛒 Marca lo que ya compraste", help4Text: 'En la pestaña Compra vas a ver todo lo que falta comprar. Cuando lo tengas, toca el botón "Comprado" junto al producto y vuelve solo a donde corresponda (nevera o alacena).',
+    help5Title: "👨‍🍳 Pide ideas al Chef IA", help5Text: "En la pestaña Chef IA, contale qué comida quieres (desayuno, almuerzo, cena...) y te arma una receta con lo que tienes en la nevera y la alacena.",
+    help6Title: "🔑 Comparte tu nevera", help6Text: "Toca el ícono 🔑 arriba para ver el código de tu nevera y compartirlo con tu familia.",
+    tabFridge: "Nevera", tabPantry: "Alacena", tabShop: "Compra", tabChef: "Chef",
+    initialLoading: "Cargando...",
+    addPlaceholderFridge: "Leche, huevos, pan... (separados por coma)",
+    addPlaceholderPantry: "Arroz, fideos, atún... (separados por coma)",
+    chefInputPlaceholder: "Ej: hazme algo para el almuerzo...",
+    emptyFridgeTitle: "Tu nevera está vacía.", emptyFridgeSub: "Añade lo que tengas ahí abajo.",
+    emptyPantryTitle: "Tu alacena está vacía.", emptyPantrySub: "Añade productos no perecederos ahí abajo.",
+    emptyShopTitle: "Nada por comprar.", emptyShopSub: "Cuando algo se acabe, aparecerá aquí.",
+    outBtn: "Se acabó", boughtBtn: "Comprado",
+    chefEmptyPrompt: "Contame qué tenés ganas de comer y armo algo con lo que hay en tu nevera y alacena.",
+    chefNowHint: "Ahora mismo parece buena hora para:",
+    chefThinking: "Pensando una receta...",
+    chefConnError: "Uy, no pude conectarme a la IA. Revisa tu conexión e intenta de nuevo.",
+    itemsAdded: "{n} productos añadidos",
+    addedToShopping: '"{name}" añadido a la lista de compra',
+    backToFridge: '"{name}" de vuelta en la nevera',
+    backToPantry: '"{name}" de vuelta en la alacena',
+    codeCopied: "Código copiado",
+    saveError: "No se pudo guardar. Revisa tu conexión.",
+    fillFields: "Completa email y contraseña.",
+    emptyCode: "Escribe un código.",
+    codeNotFound: "Ese código no existe. Revísalo con quien te lo compartió.",
+    createHouseholdError: "No se pudo crear la nevera. Intenta de nuevo.",
+    joinHouseholdError: "No se pudo unir a la nevera. Intenta de nuevo.",
+    meal_breakfast: "desayuno", meal_lunch: "almuerzo", meal_snack: "merienda", meal_dinner: "cena", meal_appetizers: "picada",
+    chefMealRequest: "Quiero que me armes una receta de {meal} con lo que tengo en la nevera y la alacena.",
+    authErrors: {
+      'auth/invalid-email': 'El email no es válido.',
+      'auth/user-not-found': 'No existe una cuenta con ese email.',
+      'auth/wrong-password': 'La contraseña es incorrecta.',
+      'auth/invalid-credential': 'Email o contraseña incorrectos.',
+      'auth/email-already-in-use': 'Ya existe una cuenta con ese email.',
+      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+      'auth/missing-password': 'Escribe una contraseña.',
+      default: 'Ocurrió un error. Intenta de nuevo.'
+    }
+  },
+  en: {
+    subtitleLoading: "Loading...", subtitleReady: "Tap a product when it runs out",
+    syncOnline: "Synced", syncOffline: "Offline", syncConnecting: "Connecting...",
+    captionHelp: "Help", captionCode: "Code", captionLogout: "Log out",
+    authTitleLogin: "Log in", authSubLogin: "Sign in to see your fridge",
+    authTitleSignup: "Create account", authSubSignup: "Sign up to set up your fridge",
+    labelEmail: "Email", labelPassword: "Password",
+    authSubmitLogin: "Log in", authSubmitSignup: "Create account",
+    noAccount: "Don't have an account?", createOne: "Create one",
+    hasAccount: "Already have an account?", loginLink: "Log in",
+    legalFooter: 'By continuing, you agree to the <a href="terminos.html" target="_blank">Terms of use</a> and <a href="privacidad.html" target="_blank">Privacy policy</a>.',
+    householdTitle: "How do you want to start?", householdSub: "Create your own fridge or join your family's",
+    createHousehold: "Create a new fridge", orWord: "or",
+    labelCode: "Invitation code", joinHousehold: "Join with code",
+    codeTitle: "Your fridge's code", codeSub: "Share it with your family so they can join the same fridge",
+    codeHint: "Tap to copy", back: "Back",
+    helpTitle: "How it works", closeHelp: "Got it",
+    help1Title: "🧊 Add what you have", help1Text: 'In the Fridge tab, type one or more products separated by commas (e.g. "milk, eggs, bread") and tap +.',
+    help2Title: "🥫 Use the Pantry for non-perishables", help2Text: "Rice, pasta, canned goods, spices... anything that doesn't need to be kept cold has its own tab, separate from the fridge.",
+    help3Title: "🧊🥫 Mark what ran out", help3Text: 'Next to each product (in Fridge or Pantry) there\'s an "Out" button. Tapping it moves it straight to the 🛒 Shopping tab.',
+    help4Title: "🛒 Mark what you already bought", help4Text: 'The Shopping tab shows everything you still need to buy. Once you have it, tap "Bought" next to the item and it\'ll go back to where it belongs (fridge or pantry).',
+    help5Title: "👨‍🍳 Ask the AI Chef for ideas", help5Text: "In the Chef tab, tell it what meal you want (breakfast, lunch, dinner...) and it'll build a recipe from what's in your fridge and pantry.",
+    help6Title: "🔑 Share your fridge", help6Text: "Tap the 🔑 icon above to see your fridge's code and share it with your family.",
+    tabFridge: "Fridge", tabPantry: "Pantry", tabShop: "Shopping", tabChef: "Chef",
+    initialLoading: "Loading...",
+    addPlaceholderFridge: "Milk, eggs, bread... (comma separated)",
+    addPlaceholderPantry: "Rice, pasta, canned tuna... (comma separated)",
+    chefInputPlaceholder: "E.g. make me something for lunch...",
+    emptyFridgeTitle: "Your fridge is empty.", emptyFridgeSub: "Add what you have below.",
+    emptyPantryTitle: "Your pantry is empty.", emptyPantrySub: "Add non-perishable products below.",
+    emptyShopTitle: "Nothing to buy.", emptyShopSub: "When something runs out, it'll show up here.",
+    outBtn: "Out", boughtBtn: "Bought",
+    chefEmptyPrompt: "Tell me what you feel like eating and I'll come up with something from your fridge and pantry.",
+    chefNowHint: "Right now looks like a good time for:",
+    chefThinking: "Coming up with a recipe...",
+    chefConnError: "Oops, I couldn't connect to the AI. Check your connection and try again.",
+    itemsAdded: "{n} items added",
+    addedToShopping: '"{name}" added to the shopping list',
+    backToFridge: '"{name}" back in the fridge',
+    backToPantry: '"{name}" back in the pantry',
+    codeCopied: "Code copied",
+    saveError: "Couldn't save. Check your connection.",
+    fillFields: "Fill in email and password.",
+    emptyCode: "Enter a code.",
+    codeNotFound: "That code doesn't exist. Double-check it with whoever shared it.",
+    createHouseholdError: "Couldn't create the fridge. Try again.",
+    joinHouseholdError: "Couldn't join the fridge. Try again.",
+    meal_breakfast: "breakfast", meal_lunch: "lunch", meal_snack: "snack", meal_dinner: "dinner", meal_appetizers: "appetizers",
+    chefMealRequest: "I'd like a {meal} recipe using what I have in my fridge and pantry.",
+    authErrors: {
+      'auth/invalid-email': 'That email is not valid.',
+      'auth/user-not-found': 'There is no account with that email.',
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/invalid-credential': 'Incorrect email or password.',
+      'auth/email-already-in-use': 'An account with that email already exists.',
+      'auth/weak-password': 'Password must be at least 6 characters.',
+      'auth/missing-password': 'Enter a password.',
+      default: 'Something went wrong. Try again.'
+    }
+  }
+};
+
+let lang = localStorage.getItem('neveraLang') || 'es';
+
+function t(key, vars){
+  let str = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.es[key];
+  if(str === undefined) return key;
+  if(vars){
+    Object.keys(vars).forEach(k => { str = str.replace('{'+k+'}', vars[k]); });
+  }
+  return str;
+}
+
 let state = { fridge: [], shopping: [], pantry: [] };
 let currentTab = 'fridge';
 let loaded = false;
@@ -742,18 +897,20 @@ function showStatus(msg){
   setTimeout(()=> el.classList.remove('show'), 1400);
 }
 
+let lastConnMode = 'connecting';
 function setConn(mode){
+  lastConnMode = mode;
   const badge = document.getElementById('connbadge');
   const label = document.getElementById('connlabel');
   badge.classList.remove('online','offline');
   if(mode === 'online'){
     badge.classList.add('online');
-    label.textContent = 'Sincronizado';
+    label.textContent = t('syncOnline');
   } else if(mode === 'offline'){
     badge.classList.add('offline');
-    label.textContent = 'Sin conexión';
+    label.textContent = t('syncOffline');
   } else {
-    label.textContent = 'Conectando...';
+    label.textContent = t('syncConnecting');
   }
 }
 
@@ -780,16 +937,8 @@ function setAuthError(msg){
 }
 
 function friendlyAuthError(code){
-  const map = {
-    'auth/invalid-email': 'El email no es válido.',
-    'auth/user-not-found': 'No existe una cuenta con ese email.',
-    'auth/wrong-password': 'La contraseña es incorrecta.',
-    'auth/invalid-credential': 'Email o contraseña incorrectos.',
-    'auth/email-already-in-use': 'Ya existe una cuenta con ese email.',
-    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-    'auth/missing-password': 'Escribe una contraseña.',
-  };
-  return map[code] || 'Ocurrió un error. Intenta de nuevo.';
+  const map = I18N[lang] && I18N[lang].authErrors ? I18N[lang].authErrors : I18N.es.authErrors;
+  return map[code] || map.default;
 }
 
 function updateAuthScreenMode(){
@@ -799,15 +948,15 @@ function updateAuthScreenMode(){
   const switchLink = document.getElementById('authSwitchLink');
   setAuthError(null);
   if(authMode === 'login'){
-    title.textContent = 'Iniciar sesión';
-    sub.textContent = 'Entra con tu cuenta para ver tu nevera';
-    submitBtn.textContent = 'Iniciar sesión';
-    switchLink.innerHTML = '¿No tienes cuenta? <a id="authSwitchAction">Crear una</a>';
+    title.textContent = t('authTitleLogin');
+    sub.textContent = t('authSubLogin');
+    submitBtn.textContent = t('authSubmitLogin');
+    switchLink.innerHTML = `${t('noAccount')} <a id="authSwitchAction">${t('createOne')}</a>`;
   } else {
-    title.textContent = 'Crear cuenta';
-    sub.textContent = 'Registrate para armar tu nevera';
-    submitBtn.textContent = 'Crear cuenta';
-    switchLink.innerHTML = '¿Ya tienes cuenta? <a id="authSwitchAction">Inicia sesión</a>';
+    title.textContent = t('authTitleSignup');
+    sub.textContent = t('authSubSignup');
+    submitBtn.textContent = t('authSubmitSignup');
+    switchLink.innerHTML = `${t('hasAccount')} <a id="authSwitchAction">${t('loginLink')}</a>`;
   }
   document.getElementById('authSwitchAction').addEventListener('click', ()=>{
     authMode = (authMode === 'login') ? 'signup' : 'login';
@@ -819,12 +968,13 @@ document.getElementById('authSubmitBtn').addEventListener('click', async ()=>{
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   setAuthError(null);
-  if(!email || !password){ setAuthError('Completa email y contraseña.'); return; }
+  if(!email || !password){ setAuthError(t('fillFields')); return; }
   try{
     if(authMode === 'login'){
       await auth.signInWithEmailAndPassword(email, password);
     } else {
-      await auth.createUserWithEmailAndPassword(email, password);
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      cred.user.sendEmailVerification().catch(()=>{});
     }
   }catch(err){
     setAuthError(friendlyAuthError(err.code));
@@ -849,7 +999,7 @@ document.getElementById('createHouseholdBtn').addEventListener('click', async ()
     householdId = code;
     connectToHousehold();
   }catch(err){
-    errEl.textContent = 'No se pudo crear la nevera. Intenta de nuevo.';
+    errEl.textContent = t('createHouseholdError');
     errEl.classList.add('show');
   }
 });
@@ -858,11 +1008,11 @@ document.getElementById('joinHouseholdBtn').addEventListener('click', async ()=>
   const errEl = document.getElementById('householdError');
   errEl.classList.remove('show');
   const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
-  if(!code){ errEl.textContent = 'Escribe un código.'; errEl.classList.add('show'); return; }
+  if(!code){ errEl.textContent = t('emptyCode'); errEl.classList.add('show'); return; }
   try{
     const snap = await db.ref(`households/${code}/members`).once('value');
     if(!snap.exists()){
-      errEl.textContent = 'Ese código no existe. Revísalo con quien te lo compartió.';
+      errEl.textContent = t('codeNotFound');
       errEl.classList.add('show');
       return;
     }
@@ -871,7 +1021,7 @@ document.getElementById('joinHouseholdBtn').addEventListener('click', async ()=>
     householdId = code;
     connectToHousehold();
   }catch(err){
-    errEl.textContent = 'No se pudo unir a la nevera. Intenta de nuevo.';
+    errEl.textContent = t('joinHouseholdError');
     errEl.classList.add('show');
   }
 });
@@ -889,7 +1039,7 @@ document.getElementById('closeHelpBtn').addEventListener('click', ()=> {
 });
 document.getElementById('codeDisplay').addEventListener('click', ()=>{
   if(!householdId) return;
-  navigator.clipboard?.writeText(householdId).then(()=> showStatus('Código copiado'));
+  navigator.clipboard?.writeText(householdId).then(()=> showStatus(t('codeCopied')));
 });
 
 function connectToHousehold(){
@@ -897,7 +1047,7 @@ function connectToHousehold(){
   currentTab = 'fridge';
   showScreen(null);
   setActiveTab('fridge');
-  document.getElementById('subtitle').textContent = 'Cargando...';
+  document.getElementById('subtitle').textContent = t('subtitleLoading');
 
   if(!localStorage.getItem('neveraTutorialVisto')){
     setTimeout(()=> showScreen('helpScreen'), 400);
@@ -916,7 +1066,7 @@ function connectToHousehold(){
       state = { fridge: [], shopping: [], pantry: [] };
     }
     loaded = true;
-    document.getElementById('subtitle').textContent = 'Toca un producto cuando se acabe';
+    document.getElementById('subtitle').textContent = t('subtitleReady');
     render();
   });
 }
@@ -962,7 +1112,7 @@ function saveState(){
   state.pantry.forEach(item => pantryObj[item.id] = item);
 
   dataRef.set({ fridge: fridgeObj, shopping: shoppingObj, pantry: pantryObj }).catch(()=>{
-    showStatus('No se pudo guardar. Revisa tu conexión.');
+    showStatus(t('saveError'));
   });
 }
 
@@ -978,7 +1128,7 @@ function addItemsToList(listKey, text){
   if(names.length === 0) return;
   names.forEach(name => state[listKey].push({ id: uid(), name }));
   saveState();
-  if(names.length > 1) showStatus(`${names.length} productos añadidos`);
+  if(names.length > 1) showStatus(t('itemsAdded', { n: names.length }));
 }
 
 function moveToShopping(fromList, id){
@@ -988,7 +1138,7 @@ function moveToShopping(fromList, id){
   state[fromList].splice(idx,1);
   state.shopping.push({ id: uid(), name: item.name, returnTo: fromList });
   saveState();
-  showStatus(`"${item.name}" añadido a la lista de compra`);
+  showStatus(t('addedToShopping', { name: item.name }));
 }
 
 function markBought(id){
@@ -999,7 +1149,7 @@ function markBought(id){
   const target = (item.returnTo === 'pantry') ? 'pantry' : 'fridge';
   state[target].push({ id: uid(), name: item.name });
   saveState();
-  showStatus(`"${item.name}" de vuelta en ${target === 'pantry' ? 'la alacena' : 'la nevera'}`);
+  showStatus(t(target === 'pantry' ? 'backToPantry' : 'backToFridge', { name: item.name }));
 }
 
 function deleteItem(list, id){
@@ -1017,7 +1167,7 @@ function render(){
   const addInput = document.getElementById('addInput');
 
   if(!loaded){
-    main.innerHTML = '<div class="loading">Cargando tu nevera...</div>';
+    main.innerHTML = `<div class="loading">${t('initialLoading')}</div>`;
     return;
   }
 
@@ -1028,46 +1178,46 @@ function render(){
 
   if(currentTab === 'fridge'){
     addbar.classList.remove('shop');
-    addInput.placeholder = 'Leche, huevos, pan... (separados por coma)';
+    addInput.placeholder = t('addPlaceholderFridge');
     if(state.fridge.length === 0){
-      main.innerHTML = `<div class="empty"><div class="big">🧊</div><p>Tu nevera está vacía.</p><p>Añade lo que tengas ahí abajo.</p></div>`;
+      main.innerHTML = `<div class="empty"><div class="big">🧊</div><p>${t('emptyFridgeTitle')}</p><p>${t('emptyFridgeSub')}</p></div>`;
       return;
     }
     main.innerHTML = `<div class="list">${state.fridge.map(item => `
       <div class="item" data-id="${item.id}">
         <span class="dot"></span>
         <span class="name">${escapeHtml(item.name)}</span>
-        <button class="action" data-action="out" data-list="fridge" data-id="${item.id}">Se acabó</button>
+        <button class="action" data-action="out" data-list="fridge" data-id="${item.id}">${t('outBtn')}</button>
         <button class="del" data-action="del" data-list="fridge" data-id="${item.id}">✕</button>
       </div>
     `).join('')}</div>`;
   } else if(currentTab === 'pantry'){
     addbar.classList.remove('shop');
-    addInput.placeholder = 'Arroz, fideos, atún... (separados por coma)';
+    addInput.placeholder = t('addPlaceholderPantry');
     if(state.pantry.length === 0){
-      main.innerHTML = `<div class="empty"><div class="big">🥫</div><p>Tu alacena está vacía.</p><p>Añade productos no perecederos ahí abajo.</p></div>`;
+      main.innerHTML = `<div class="empty"><div class="big">🥫</div><p>${t('emptyPantryTitle')}</p><p>${t('emptyPantrySub')}</p></div>`;
       return;
     }
     main.innerHTML = `<div class="list">${state.pantry.map(item => `
       <div class="item" data-id="${item.id}">
         <span class="dot"></span>
         <span class="name">${escapeHtml(item.name)}</span>
-        <button class="action" data-action="out" data-list="pantry" data-id="${item.id}">Se acabó</button>
+        <button class="action" data-action="out" data-list="pantry" data-id="${item.id}">${t('outBtn')}</button>
         <button class="del" data-action="del" data-list="pantry" data-id="${item.id}">✕</button>
       </div>
     `).join('')}</div>`;
   } else {
     addbar.classList.add('shop');
-    addInput.placeholder = 'Leche, huevos, pan... (separados por coma)';
+    addInput.placeholder = t('addPlaceholderFridge');
     if(state.shopping.length === 0){
-      main.innerHTML = `<div class="empty"><div class="big">🛒</div><p>Nada por comprar.</p><p>Cuando algo se acabe, aparecerá aquí.</p></div>`;
+      main.innerHTML = `<div class="empty"><div class="big">🛒</div><p>${t('emptyShopTitle')}</p><p>${t('emptyShopSub')}</p></div>`;
       return;
     }
     main.innerHTML = `<div class="list">${state.shopping.map(item => `
       <div class="item shop" data-id="${item.id}">
         <span class="dot"></span>
         <span class="name">${escapeHtml(item.name)}</span>
-        <button class="action" data-action="bought" data-id="${item.id}">Comprado</button>
+        <button class="action" data-action="bought" data-id="${item.id}">${t('boughtBtn')}</button>
         <button class="del" data-action="del" data-list="shopping" data-id="${item.id}">✕</button>
       </div>
     `).join('')}</div>`;
@@ -1125,11 +1275,11 @@ document.getElementById('addInput').addEventListener('keydown', (e)=>{
 
 function getMealSuggestion(){
   const hour = new Date().getHours();
-  if(hour >= 6 && hour < 11) return 'desayuno';
-  if(hour >= 11 && hour < 15) return 'almuerzo';
-  if(hour >= 15 && hour < 18) return 'merienda';
-  if(hour >= 18 && hour < 23) return 'cena';
-  return 'picada';
+  if(hour >= 6 && hour < 11) return 'breakfast';
+  if(hour >= 11 && hour < 15) return 'lunch';
+  if(hour >= 15 && hour < 18) return 'snack';
+  if(hour >= 18 && hour < 23) return 'dinner';
+  return 'appetizers';
 }
 
 function renderChef(){
@@ -1140,21 +1290,21 @@ function renderChef(){
     main.innerHTML = `
       <div class="chef-empty">
         <div class="big">👨‍🍳</div>
-        <p>Contame qué tenés ganas de comer y armo algo con lo que hay en tu nevera.</p>
-        <p style="font-size:12.5px;">Ahora mismo parece buena hora para: <strong>${mealNow}</strong></p>
+        <p>${t('chefEmptyPrompt')}</p>
+        <p style="font-size:12.5px;">${t('chefNowHint')} <strong>${t('meal_'+mealNow)}</strong></p>
       </div>
       <div class="chef-suggestions">
-        <button class="chef-chip" data-meal="desayuno">🥐 Desayuno</button>
-        <button class="chef-chip" data-meal="almuerzo">🍽️ Almuerzo</button>
-        <button class="chef-chip" data-meal="merienda">☕ Merienda</button>
-        <button class="chef-chip" data-meal="cena">🌙 Cena</button>
-        <button class="chef-chip" data-meal="picada">🧀 Picada</button>
+        <button class="chef-chip" data-meal="breakfast">🥐 ${t('meal_breakfast')}</button>
+        <button class="chef-chip" data-meal="lunch">🍽️ ${t('meal_lunch')}</button>
+        <button class="chef-chip" data-meal="snack">☕ ${t('meal_snack')}</button>
+        <button class="chef-chip" data-meal="dinner">🌙 ${t('meal_dinner')}</button>
+        <button class="chef-chip" data-meal="appetizers">🧀 ${t('meal_appetizers')}</button>
       </div>
     `;
     main.querySelectorAll('.chef-chip').forEach(chip=>{
       chip.addEventListener('click', ()=>{
         const meal = chip.dataset.meal;
-        sendChefMessage(`Quiero que me armes una receta de ${meal} con lo que tengo en la nevera.`);
+        sendChefMessage(t('chefMealRequest', { meal: t('meal_'+meal) }));
       });
     });
     return;
@@ -1164,7 +1314,7 @@ function renderChef(){
     <div class="chef-msg ${m.role === 'user' ? 'user' : 'bot'}">${escapeHtml(m.text)}</div>
   `).join('');
 
-  const thinkingHtml = chefLoading ? `<div class="chef-msg bot thinking">Pensando una receta...</div>` : '';
+  const thinkingHtml = chefLoading ? `<div class="chef-msg bot thinking">${t('chefThinking')}</div>` : '';
 
   main.innerHTML = `<div class="chef-wrap"><div class="chef-messages" id="chefMessagesEl">${msgsHtml}${thinkingHtml}</div></div>`;
 
@@ -1186,7 +1336,7 @@ async function sendChefMessage(text){
     const reply = await askChef(text);
     chefMessages.push({ role:'model', text: reply });
   }catch(err){
-    chefMessages.push({ role:'model', text: 'Uy, no pude conectarme a la IA. Revisa tu conexión e intenta de nuevo.' });
+    chefMessages.push({ role:'model', text: t('chefConnError') });
   }
   chefLoading = false;
   render();
@@ -1206,9 +1356,10 @@ async function askChef(userText){
   const mealNow = getMealSuggestion();
   const fridgeList = state.fridge.map(i => i.name).join(', ') || '(vacía por ahora)';
   const pantryList = state.pantry.map(i => i.name).join(', ') || '(vacía por ahora)';
+  const langName = (lang === 'en') ? 'inglés (English)' : 'español';
 
   const systemInstruction = `Eres "Chef IA", un asistente de cocina amigable dentro de una app llamada "Mi Nevera". 
-Hablas siempre en español, de forma cálida y breve.
+Hablas siempre en ${langName}, de forma cálida y breve. Esto es muy importante: responde SIEMPRE en ${langName}, sin importar en qué idioma te escriba el usuario.
 En la nevera (productos frescos/perecederos) el usuario tiene: ${fridgeList}.
 En la alacena (productos no perecederos: enlatados, pastas, arroz, condimentos, etc.) el usuario tiene: ${pantryList}.
 La hora actual es las ${hour}:00, lo que sugiere que podría ser hora de: ${mealNow}.
@@ -1255,6 +1406,60 @@ document.getElementById('chefInput').addEventListener('keydown', (e)=>{
     document.getElementById('chefBtn').click();
   }
 });
+
+// ============ IDIOMA: aplicar traducción a toda la interfaz ============
+
+function applyLanguage(){
+  document.getElementById('langSelect').value = lang;
+
+  document.getElementById('captionHelp').textContent = t('captionHelp');
+  document.getElementById('captionCode').textContent = t('captionCode');
+  document.getElementById('captionLogout').textContent = t('captionLogout');
+
+  document.getElementById('labelEmail').textContent = t('labelEmail');
+  document.getElementById('labelPassword').textContent = t('labelPassword');
+  document.getElementById('legalFooter').innerHTML = t('legalFooter');
+
+  document.getElementById('householdTitle').textContent = t('householdTitle');
+  document.getElementById('householdSub').textContent = t('householdSub');
+  document.getElementById('createHouseholdBtn').textContent = t('createHousehold');
+  document.getElementById('orWord').textContent = t('orWord');
+  document.getElementById('labelCode').textContent = t('labelCode');
+  document.getElementById('joinHouseholdBtn').textContent = t('joinHousehold');
+
+  document.getElementById('codeTitle').textContent = t('codeTitle');
+  document.getElementById('codeSub').textContent = t('codeSub');
+  document.getElementById('codeHint').textContent = t('codeHint');
+  document.getElementById('closeCodeBtn').textContent = t('back');
+
+  document.getElementById('helpTitle').textContent = t('helpTitle');
+  document.getElementById('closeHelpBtn').textContent = t('closeHelp');
+  for(let i=1;i<=6;i++){
+    document.getElementById('help'+i+'Title').textContent = t('help'+i+'Title');
+    document.getElementById('help'+i+'Text').textContent = t('help'+i+'Text');
+  }
+
+  document.getElementById('tabFridgeLabel').textContent = t('tabFridge');
+  document.getElementById('tabPantryLabel').textContent = t('tabPantry');
+  document.getElementById('tabShopLabel').textContent = t('tabShop');
+  document.getElementById('tabChefLabel').textContent = t('tabChef');
+  document.getElementById('initialLoading').textContent = t('initialLoading');
+  document.getElementById('chefInput').placeholder = t('chefInputPlaceholder');
+
+  document.getElementById('subtitle').textContent = loaded ? t('subtitleReady') : t('subtitleLoading');
+  setConn(lastConnMode);
+
+  updateAuthScreenMode();
+  if(loaded) render();
+}
+
+document.getElementById('langSelect').addEventListener('change', (e)=>{
+  lang = e.target.value;
+  localStorage.setItem('neveraLang', lang);
+  applyLanguage();
+});
+
+applyLanguage();
 </script>
 </body>
 </html>
