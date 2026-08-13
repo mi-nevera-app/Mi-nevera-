@@ -319,29 +319,233 @@
     color: var(--ink-soft);
   }
   .chef-empty .big{ font-size:40px; margin-bottom:8px; }
+
+  /* ---- Auth / Household screens ---- */
+  .screen{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding: 20px 24px 60px;
+  }
+  .screen .icon{
+    font-size: 44px;
+    text-align:center;
+    margin-bottom: 6px;
+  }
+  .screen h2{
+    text-align:center;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 22px;
+    margin: 0 0 4px;
+  }
+  .screen .sub{
+    text-align:center;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+  }
+  .field{
+    margin-bottom: 12px;
+  }
+  .field label{
+    display:block;
+    font-size: 12.5px;
+    font-weight:600;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+  .field input{
+    width:100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    font-size: 15px;
+    color: var(--ink);
+    outline:none;
+  }
+  .field input:focus{ border-color: var(--sage); }
+  .btn-primary{
+    width:100%;
+    border:none;
+    background: var(--sage);
+    color:white;
+    font-size: 15px;
+    font-weight:700;
+    padding: 13px;
+    border-radius: 12px;
+    cursor:pointer;
+    margin-top: 6px;
+  }
+  .btn-secondary{
+    width:100%;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight:600;
+    padding: 12px;
+    border-radius: 12px;
+    cursor:pointer;
+    margin-top: 10px;
+  }
+  .switch-link{
+    text-align:center;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-top: 18px;
+  }
+  .switch-link a{
+    color: var(--sage);
+    font-weight:700;
+    text-decoration:none;
+    cursor:pointer;
+  }
+  .auth-error{
+    background: var(--coral-light);
+    color: var(--coral);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    display:none;
+  }
+  .auth-error.show{ display:block; }
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin: 22px 0 18px;
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+  .divider::before, .divider::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background: var(--line);
+  }
+  .code-box{
+    text-align:center;
+    background: var(--sage-light);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 8px;
+  }
+  .code-box .code{
+    font-size: 26px;
+    font-weight:800;
+    letter-spacing: 3px;
+    color: var(--sage);
+    font-family: monospace;
+  }
+  .code-box .hint{
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  .header-actions{
+    position:absolute;
+    top: 26px;
+    right: 18px;
+    display:flex;
+    gap:8px;
+  }
+  .icon-btn{
+    border:none;
+    background: var(--card);
+    border: 1px solid var(--line);
+    width: 32px; height:32px;
+    border-radius: 50%;
+    cursor:pointer;
+    font-size: 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="status"></div>
+
+  <div class="header-actions" id="headerActions" style="display:none;">
+    <button class="icon-btn" id="codeBtn" title="Código de tu nevera">🔑</button>
+    <button class="icon-btn" id="logoutBtn" title="Cerrar sesión">⎋</button>
+  </div>
+
   <header>
     <span class="magnet"></span>
     <h1>Mi Nevera</h1>
     <p id="subtitle">Cargando...</p>
-    <div class="connbadge" id="connbadge"><span class="led"></span><span id="connlabel">Conectando...</span></div>
+    <div class="connbadge" id="connbadge" style="display:none;"><span class="led"></span><span id="connlabel">Conectando...</span></div>
   </header>
 
-  <nav>
+  <!-- ==== PANTALLA: LOGIN / REGISTRO ==== -->
+  <div class="screen" id="authScreen" style="display:none;">
+    <div class="icon">🔐</div>
+    <h2 id="authTitle">Iniciar sesión</h2>
+    <p class="sub" id="authSub">Entra con tu cuenta para ver tu nevera</p>
+
+    <div class="auth-error" id="authError"></div>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="tu@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn-primary" id="authSubmitBtn">Iniciar sesión</button>
+
+    <p class="switch-link" id="authSwitchLink">¿No tienes cuenta? <a id="authSwitchAction">Crear una</a></p>
+  </div>
+
+  <!-- ==== PANTALLA: CREAR O UNIRSE A NEVERA ==== -->
+  <div class="screen" id="householdScreen" style="display:none;">
+    <div class="icon">🧊</div>
+    <h2>¿Cómo quieres empezar?</h2>
+    <p class="sub">Crea tu propia nevera o únete a la de tu familia</p>
+
+    <div class="auth-error" id="householdError"></div>
+
+    <button class="btn-primary" id="createHouseholdBtn">Crear una nevera nueva</button>
+
+    <div class="divider">o</div>
+
+    <div class="field">
+      <label>Código de invitación</label>
+      <input type="text" id="joinCodeInput" placeholder="Ej: AB3F9K" style="text-transform:uppercase;">
+    </div>
+    <button class="btn-secondary" id="joinHouseholdBtn">Unirme con código</button>
+  </div>
+
+  <!-- ==== PANTALLA: VER CÓDIGO DE LA NEVERA ==== -->
+  <div class="screen" id="codeScreen" style="display:none;">
+    <div class="icon">🔑</div>
+    <h2>Código de tu nevera</h2>
+    <p class="sub">Compártelo con tu familia para que se unan a la misma nevera</p>
+    <div class="code-box">
+      <div class="code" id="codeDisplay">------</div>
+      <div class="hint">Toca para copiar</div>
+    </div>
+    <button class="btn-secondary" id="closeCodeBtn">Volver</button>
+  </div>
+
+  <nav id="mainNav" style="display:none;">
     <button id="tab-fridge" class="active">🧊 Nevera <span class="count" id="count-fridge">0</span></button>
     <button id="tab-shop">🛒 Compra <span class="count coral" id="count-shop">0</span></button>
     <button id="tab-chef">👨‍🍳 Chef IA</button>
   </nav>
 
   <main id="main">
-    <div class="loading">Cargando tu nevera...</div>
+    <div class="loading">Cargando...</div>
   </main>
 
-  <div class="addbar" id="addbar">
+  <div class="addbar" id="addbar" style="display:none;">
     <div class="addbar-inner">
       <input id="addInput" type="text" placeholder="Añadir producto..." autocomplete="off">
       <button id="addBtn">+</button>
@@ -359,6 +563,7 @@
 <!-- Firebase SDK (versión compat, funciona con simple <script>, sin necesidad de npm) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <script>
 // ==== CONFIGURACIÓN DE FIREBASE (tu proyecto real) ====
@@ -374,7 +579,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const dataRef = db.ref('nevera-data');
+const auth = firebase.auth();
 
 // ==== CLAVE DE GEMINI (Chef IA) ====
 const GEMINI_API_KEY = "AQ.Ab8RN6L5VlP_tdAIfFwUTruGYI0A7OA1kt7Kq0QFKT48lI5JVw";
@@ -387,7 +592,18 @@ let loaded = false;
 let chefMessages = []; // {role: 'user'|'model', text: '...'}
 let chefLoading = false;
 
+let currentUser = null;
+let householdId = null;
+let dataRef = null;
+let authMode = 'login'; // 'login' | 'signup'
+
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function genCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin caracteres confusos (0,O,1,I)
+  let code = '';
+  for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
 
 function showStatus(msg){
   const el = document.getElementById('status');
@@ -411,24 +627,188 @@ function setConn(mode){
   }
 }
 
-// Escucha cambios en tiempo real: si otra persona edita la lista, se actualiza sola aquí también
-dataRef.on('value', (snapshot) => {
-  const val = snapshot.val();
-  if(val){
-    state = {
-      fridge: val.fridge ? Object.values(val.fridge) : [],
-      shopping: val.shopping ? Object.values(val.shopping) : []
-    };
-  } else {
-    state = { fridge: [], shopping: [] };
-  }
-  loaded = true;
-  document.getElementById('subtitle').textContent = 'Toca un producto cuando se acabe';
-  render();
-});
-
 db.ref('.info/connected').on('value', (snap) => {
   setConn(snap.val() === true ? 'online' : 'offline');
+});
+
+// ============ AUTENTICACIÓN ============
+
+function showScreen(name){
+  ['authScreen','householdScreen','codeScreen'].forEach(id=>{
+    document.getElementById(id).style.display = (id === name) ? 'flex' : 'none';
+  });
+  document.getElementById('mainNav').style.display = (name === null) ? 'flex' : 'none';
+  document.getElementById('main').style.display = (name === null) ? 'block' : 'none';
+  document.getElementById('headerActions').style.display = (name === null || name === 'codeScreen') ? 'flex' : 'none';
+  document.getElementById('connbadge').style.display = (name === null) ? 'inline-flex' : 'none';
+}
+
+function setAuthError(msg){
+  const el = document.getElementById('authError');
+  if(msg){ el.textContent = msg; el.classList.add('show'); }
+  else { el.textContent=''; el.classList.remove('show'); }
+}
+
+function friendlyAuthError(code){
+  const map = {
+    'auth/invalid-email': 'El email no es válido.',
+    'auth/user-not-found': 'No existe una cuenta con ese email.',
+    'auth/wrong-password': 'La contraseña es incorrecta.',
+    'auth/invalid-credential': 'Email o contraseña incorrectos.',
+    'auth/email-already-in-use': 'Ya existe una cuenta con ese email.',
+    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+    'auth/missing-password': 'Escribe una contraseña.',
+  };
+  return map[code] || 'Ocurrió un error. Intenta de nuevo.';
+}
+
+function updateAuthScreenMode(){
+  const title = document.getElementById('authTitle');
+  const sub = document.getElementById('authSub');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  const switchLink = document.getElementById('authSwitchLink');
+  setAuthError(null);
+  if(authMode === 'login'){
+    title.textContent = 'Iniciar sesión';
+    sub.textContent = 'Entra con tu cuenta para ver tu nevera';
+    submitBtn.textContent = 'Iniciar sesión';
+    switchLink.innerHTML = '¿No tienes cuenta? <a id="authSwitchAction">Crear una</a>';
+  } else {
+    title.textContent = 'Crear cuenta';
+    sub.textContent = 'Registrate para armar tu nevera';
+    submitBtn.textContent = 'Crear cuenta';
+    switchLink.innerHTML = '¿Ya tienes cuenta? <a id="authSwitchAction">Inicia sesión</a>';
+  }
+  document.getElementById('authSwitchAction').addEventListener('click', ()=>{
+    authMode = (authMode === 'login') ? 'signup' : 'login';
+    updateAuthScreenMode();
+  });
+}
+
+document.getElementById('authSubmitBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  setAuthError(null);
+  if(!email || !password){ setAuthError('Completa email y contraseña.'); return; }
+  try{
+    if(authMode === 'login'){
+      await auth.signInWithEmailAndPassword(email, password);
+    } else {
+      await auth.createUserWithEmailAndPassword(email, password);
+    }
+  }catch(err){
+    setAuthError(friendlyAuthError(err.code));
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  if(dataRef) dataRef.off();
+  auth.signOut();
+});
+
+// ============ HOGARES (HOUSEHOLDS) ============
+
+document.getElementById('createHouseholdBtn').addEventListener('click', async ()=>{
+  const errEl = document.getElementById('householdError');
+  errEl.classList.remove('show');
+  const code = genCode();
+  try{
+    await db.ref(`households/${code}/members/${currentUser.uid}`).set(true);
+    await db.ref(`households/${code}/data`).set({ fridge: {}, shopping: {} });
+    await db.ref(`users/${currentUser.uid}`).set({ householdId: code, email: currentUser.email });
+    householdId = code;
+    connectToHousehold();
+  }catch(err){
+    errEl.textContent = 'No se pudo crear la nevera. Intenta de nuevo.';
+    errEl.classList.add('show');
+  }
+});
+
+document.getElementById('joinHouseholdBtn').addEventListener('click', async ()=>{
+  const errEl = document.getElementById('householdError');
+  errEl.classList.remove('show');
+  const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+  if(!code){ errEl.textContent = 'Escribe un código.'; errEl.classList.add('show'); return; }
+  try{
+    const snap = await db.ref(`households/${code}/members`).once('value');
+    if(!snap.exists()){
+      errEl.textContent = 'Ese código no existe. Revísalo con quien te lo compartió.';
+      errEl.classList.add('show');
+      return;
+    }
+    await db.ref(`households/${code}/members/${currentUser.uid}`).set(true);
+    await db.ref(`users/${currentUser.uid}`).set({ householdId: code, email: currentUser.email });
+    householdId = code;
+    connectToHousehold();
+  }catch(err){
+    errEl.textContent = 'No se pudo unir a la nevera. Intenta de nuevo.';
+    errEl.classList.add('show');
+  }
+});
+
+document.getElementById('codeBtn').addEventListener('click', ()=>{
+  document.getElementById('codeDisplay').textContent = householdId || '------';
+  showScreen('codeScreen');
+});
+document.getElementById('closeCodeBtn').addEventListener('click', ()=> showScreen(null));
+document.getElementById('codeDisplay').addEventListener('click', ()=>{
+  if(!householdId) return;
+  navigator.clipboard?.writeText(householdId).then(()=> showStatus('Código copiado'));
+});
+
+function connectToHousehold(){
+  loaded = false;
+  currentTab = 'fridge';
+  showScreen(null);
+  setActiveTab('fridge');
+  document.getElementById('subtitle').textContent = 'Cargando...';
+
+  dataRef = db.ref(`households/${householdId}/data`);
+  dataRef.on('value', (snapshot) => {
+    const val = snapshot.val();
+    if(val){
+      state = {
+        fridge: val.fridge ? Object.values(val.fridge) : [],
+        shopping: val.shopping ? Object.values(val.shopping) : []
+      };
+    } else {
+      state = { fridge: [], shopping: [] };
+    }
+    loaded = true;
+    document.getElementById('subtitle').textContent = 'Toca un producto cuando se acabe';
+    render();
+  });
+}
+
+// ============ ESTADO DE SESIÓN ============
+
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  householdId = null;
+  state = { fridge: [], shopping: [] };
+  loaded = false;
+  chefMessages = [];
+
+  if(!user){
+    updateAuthScreenMode();
+    showScreen('authScreen');
+    return;
+  }
+
+  // Usuario logueado: revisamos si ya tiene una nevera asignada
+  try{
+    const snap = await db.ref(`users/${user.uid}`).once('value');
+    const profile = snap.val();
+    if(profile && profile.householdId){
+      householdId = profile.householdId;
+      connectToHousehold();
+    } else {
+      document.getElementById('householdError').classList.remove('show');
+      showScreen('householdScreen');
+    }
+  }catch(err){
+    showScreen('householdScreen');
+  }
 });
 
 function saveState(){
