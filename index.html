@@ -631,6 +631,18 @@
       <div class="hint" id="codeHint">Toca para copiar</div>
     </div>
     <button class="btn-secondary" id="closeCodeBtn">Volver</button>
+
+    <div class="divider" id="switchDivider">o</div>
+
+    <p class="sub" id="switchTitle" style="margin-bottom:12px;">¿Quieres cambiar de nevera?</p>
+    <div class="auth-error" id="switchError"></div>
+
+    <div class="field">
+      <label id="labelSwitchCode">Código de otra nevera</label>
+      <input type="text" id="switchCodeInput" placeholder="Ej: AB3F9K" style="text-transform:uppercase;">
+    </div>
+    <button class="btn-secondary" id="switchJoinBtn">Unirme (y salir de esta)</button>
+    <button class="btn-secondary" id="switchNewBtn" style="margin-top:8px; color:var(--coral); border-color:var(--coral-light);">Salir y crear mi propia nevera</button>
   </div>
 
   <!-- ==== PANTALLA: TUTORIAL / CÓMO FUNCIONA ==== -->
@@ -785,6 +797,13 @@ const I18N = {
     codeNotFound: "Ese código no existe. Revísalo con quien te lo compartió.",
     createHouseholdError: "No se pudo crear la nevera. Intenta de nuevo.",
     joinHouseholdError: "No se pudo unir a la nevera. Intenta de nuevo.",
+    switchTitle: "¿Quieres cambiar de nevera?",
+    labelSwitchCode: "Código de otra nevera",
+    switchJoinBtn: "Unirme (y salir de esta)",
+    switchNewBtn: "Salir y crear mi propia nevera",
+    sameCodeError: "Ya estás en esa nevera.",
+    confirmSwitch: "¿Seguro que quieres salir de esta nevera y unirte a la nueva? Ya no verás sus productos.",
+    confirmNew: "¿Seguro que quieres salir de esta nevera y crear una nueva para vos solo?",
     meal_breakfast: "desayuno", meal_lunch: "almuerzo", meal_snack: "merienda", meal_dinner: "cena", meal_appetizers: "picada",
     chefMealRequest: "Quiero que me armes una receta de {meal} con lo que tengo en la nevera y la alacena.",
     authErrors: {
@@ -845,6 +864,13 @@ const I18N = {
     codeNotFound: "That code doesn't exist. Double-check it with whoever shared it.",
     createHouseholdError: "Couldn't create the fridge. Try again.",
     joinHouseholdError: "Couldn't join the fridge. Try again.",
+    switchTitle: "Want to switch fridges?",
+    labelSwitchCode: "Another fridge's code",
+    switchJoinBtn: "Join (and leave this one)",
+    switchNewBtn: "Leave and create my own fridge",
+    sameCodeError: "You're already in that fridge.",
+    confirmSwitch: "Are you sure you want to leave this fridge and join the new one? You won't see its products anymore.",
+    confirmNew: "Are you sure you want to leave this fridge and create a new one just for you?",
     meal_breakfast: "breakfast", meal_lunch: "lunch", meal_snack: "snack", meal_dinner: "dinner", meal_appetizers: "appetizers",
     chefMealRequest: "I'd like a {meal} recipe using what I have in my fridge and pantry.",
     authErrors: {
@@ -988,16 +1014,40 @@ document.getElementById('logoutBtn').addEventListener('click', ()=>{
 
 // ============ HOGARES (HOUSEHOLDS) ============
 
+async function doCreateHousehold(){
+  const code = genCode();
+  await db.ref(`households/${code}/members/${currentUser.uid}`).set(true);
+  await db.ref(`households/${code}/data`).set({ fridge: {}, shopping: {}, pantry: {} });
+  await db.ref(`users/${currentUser.uid}`).set({ householdId: code, email: currentUser.email });
+  householdId = code;
+  connectToHousehold();
+}
+
+async function doJoinHousehold(code){
+  const snap = await db.ref(`households/${code}/members`).once('value');
+  if(!snap.exists()){
+    const err = new Error('not-found');
+    err.code = 'not-found';
+    throw err;
+  }
+  await db.ref(`households/${code}/members/${currentUser.uid}`).set(true);
+  await db.ref(`users/${currentUser.uid}`).set({ householdId: code, email: currentUser.email });
+  householdId = code;
+  connectToHousehold();
+}
+
+async function leaveCurrentHousehold(){
+  if(householdId && currentUser){
+    try{ await db.ref(`households/${householdId}/members/${currentUser.uid}`).remove(); }catch(e){}
+  }
+  if(dataRef){ dataRef.off(); dataRef = null; }
+}
+
 document.getElementById('createHouseholdBtn').addEventListener('click', async ()=>{
   const errEl = document.getElementById('householdError');
   errEl.classList.remove('show');
-  const code = genCode();
   try{
-    await db.ref(`households/${code}/members/${currentUser.uid}`).set(true);
-    await db.ref(`households/${code}/data`).set({ fridge: {}, shopping: {} });
-    await db.ref(`users/${currentUser.uid}`).set({ householdId: code, email: currentUser.email });
-    householdId = code;
-    connectToHousehold();
+    await doCreateHousehold();
   }catch(err){
     errEl.textContent = t('createHouseholdError');
     errEl.classList.add('show');
@@ -1010,27 +1060,55 @@ document.getElementById('joinHouseholdBtn').addEventListener('click', async ()=>
   const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
   if(!code){ errEl.textContent = t('emptyCode'); errEl.classList.add('show'); return; }
   try{
-    const snap = await db.ref(`households/${code}/members`).once('value');
-    if(!snap.exists()){
-      errEl.textContent = t('codeNotFound');
-      errEl.classList.add('show');
-      return;
-    }
-    await db.ref(`households/${code}/members/${currentUser.uid}`).set(true);
-    await db.ref(`users/${currentUser.uid}`).set({ householdId: code, email: currentUser.email });
-    householdId = code;
-    connectToHousehold();
+    await doJoinHousehold(code);
   }catch(err){
-    errEl.textContent = t('joinHouseholdError');
+    errEl.textContent = (err.code === 'not-found') ? t('codeNotFound') : t('joinHouseholdError');
     errEl.classList.add('show');
   }
 });
 
 document.getElementById('codeBtn').addEventListener('click', ()=>{
   document.getElementById('codeDisplay').textContent = householdId || '------';
+  document.getElementById('switchError').classList.remove('show');
+  document.getElementById('switchCodeInput').value = '';
   showScreen('codeScreen');
 });
 document.getElementById('closeCodeBtn').addEventListener('click', ()=> showScreen(null));
+
+document.getElementById('switchJoinBtn').addEventListener('click', async ()=>{
+  const errEl = document.getElementById('switchError');
+  errEl.classList.remove('show');
+  const code = document.getElementById('switchCodeInput').value.trim().toUpperCase();
+  if(!code){ errEl.textContent = t('emptyCode'); errEl.classList.add('show'); return; }
+  if(code === householdId){ errEl.textContent = t('sameCodeError'); errEl.classList.add('show'); return; }
+  try{
+    const snap = await db.ref(`households/${code}/members`).once('value');
+    if(!snap.exists()){
+      errEl.textContent = t('codeNotFound');
+      errEl.classList.add('show');
+      return;
+    }
+    if(!confirm(t('confirmSwitch'))) return;
+    await leaveCurrentHousehold();
+    await doJoinHousehold(code);
+  }catch(err){
+    errEl.textContent = t('joinHouseholdError');
+    errEl.classList.add('show');
+  }
+});
+
+document.getElementById('switchNewBtn').addEventListener('click', async ()=>{
+  const errEl = document.getElementById('switchError');
+  errEl.classList.remove('show');
+  if(!confirm(t('confirmNew'))) return;
+  try{
+    await leaveCurrentHousehold();
+    await doCreateHousehold();
+  }catch(err){
+    errEl.textContent = t('createHouseholdError');
+    errEl.classList.add('show');
+  }
+});
 
 document.getElementById('helpBtn').addEventListener('click', ()=> showScreen('helpScreen'));
 document.getElementById('closeHelpBtn').addEventListener('click', ()=> {
@@ -1431,6 +1509,11 @@ function applyLanguage(){
   document.getElementById('codeSub').textContent = t('codeSub');
   document.getElementById('codeHint').textContent = t('codeHint');
   document.getElementById('closeCodeBtn').textContent = t('back');
+  document.getElementById('switchDivider').textContent = t('orWord');
+  document.getElementById('switchTitle').textContent = t('switchTitle');
+  document.getElementById('labelSwitchCode').textContent = t('labelSwitchCode');
+  document.getElementById('switchJoinBtn').textContent = t('switchJoinBtn');
+  document.getElementById('switchNewBtn').textContent = t('switchNewBtn');
 
   document.getElementById('helpTitle').textContent = t('helpTitle');
   document.getElementById('closeHelpBtn').textContent = t('closeHelp');
@@ -1443,7 +1526,8 @@ function applyLanguage(){
   document.getElementById('tabPantryLabel').textContent = t('tabPantry');
   document.getElementById('tabShopLabel').textContent = t('tabShop');
   document.getElementById('tabChefLabel').textContent = t('tabChef');
-  document.getElementById('initialLoading').textContent = t('initialLoading');
+  const initialLoadingEl = document.getElementById('initialLoading');
+  if(initialLoadingEl) initialLoadingEl.textContent = t('initialLoading');
   document.getElementById('chefInput').placeholder = t('chefInputPlaceholder');
 
   document.getElementById('subtitle').textContent = loaded ? t('subtitleReady') : t('subtitleLoading');
