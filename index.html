@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Mi Nevera</title>
+<title>Mi Nevera - Inventario compartido de nevera con IA</title>
+<meta name="description" content="Mi Nevera: lleva el inventario de tu nevera compartido con tu familia, con lista de compras automática y un Chef IA que te sugiere recetas con lo que tienes en casa.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Mi Nevera">
+<meta property="og:description" content="Inventario de nevera compartido con tu familia, lista de compras automática y recetas con IA.">
+<meta property="og:type" content="website">
 <style>
   :root{
     --bg: #F6F4EE;
@@ -72,9 +77,9 @@
     flex:1;
     border:none;
     background:transparent;
-    padding: 10px 8px;
+    padding: 9px 4px;
     border-radius: 999px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--ink-soft);
     cursor:pointer;
@@ -82,18 +87,18 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
+    gap:3px;
   }
   nav button.active{
     background: var(--sage);
     color: white;
   }
   nav button .count{
-    font-size:11px;
+    font-size:10px;
     background: rgba(0,0,0,0.12);
-    padding: 1px 7px;
+    padding: 1px 5px;
     border-radius: 999px;
-    min-width: 18px;
+    min-width: 14px;
     text-align:center;
   }
   nav button.active .count{ background: rgba(255,255,255,0.25); }
@@ -464,6 +469,51 @@
     align-items:center;
     justify-content:center;
   }
+
+  .legal-footer{
+    text-align:center;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 22px;
+    line-height:1.5;
+  }
+  .legal-footer a{
+    color: var(--ink-soft);
+    text-decoration: underline;
+  }
+
+  .help-steps{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    margin: 8px 0 24px;
+  }
+  .help-step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .help-num{
+    flex-shrink:0;
+    width: 26px; height:26px;
+    border-radius:50%;
+    background: var(--sage);
+    color:white;
+    font-weight:800;
+    font-size: 13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .help-step strong{
+    font-size: 14.5px;
+  }
+  .help-step p{
+    margin: 3px 0 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height:1.4;
+  }
 </style>
 </head>
 <body>
@@ -471,6 +521,7 @@
   <div id="status"></div>
 
   <div class="header-actions" id="headerActions" style="display:none;">
+    <button class="icon-btn" id="helpBtn" title="Cómo funciona">❓</button>
     <button class="icon-btn" id="codeBtn" title="Código de tu nevera">🔑</button>
     <button class="icon-btn" id="logoutBtn" title="Cerrar sesión">⎋</button>
   </div>
@@ -502,6 +553,10 @@
     <button class="btn-primary" id="authSubmitBtn">Iniciar sesión</button>
 
     <p class="switch-link" id="authSwitchLink">¿No tienes cuenta? <a id="authSwitchAction">Crear una</a></p>
+
+    <p class="legal-footer">
+      Al continuar, aceptas los <a href="terminos.html" target="_blank">Términos de uso</a> y la <a href="privacidad.html" target="_blank">Política de privacidad</a>.
+    </p>
   </div>
 
   <!-- ==== PANTALLA: CREAR O UNIRSE A NEVERA ==== -->
@@ -535,10 +590,62 @@
     <button class="btn-secondary" id="closeCodeBtn">Volver</button>
   </div>
 
+  <!-- ==== PANTALLA: TUTORIAL / CÓMO FUNCIONA ==== -->
+  <div class="screen" id="helpScreen" style="display:none;">
+    <div class="icon">📖</div>
+    <h2>Cómo funciona</h2>
+    <div class="help-steps">
+      <div class="help-step">
+        <div class="help-num">1</div>
+        <div>
+          <strong>🧊 Añade lo que tengas</strong>
+          <p>En la pestaña Nevera, escribe uno o varios productos separados por coma (ej: "leche, huevos, pan") y toca +.</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">2</div>
+        <div>
+          <strong>🥫 Usa la Alacena para lo no perecedero</strong>
+          <p>Arroz, fideos, enlatados, condimentos... todo lo que no se guarda en frío va en su propia pestaña, separado de la nevera.</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">3</div>
+        <div>
+          <strong>🧊🥫 Marca lo que se acabó</strong>
+          <p>Junto a cada producto (en Nevera o Alacena) hay un botón "Se acabó". Al tocarlo, pasa solo a la pestaña 🛒 Compra.</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">4</div>
+        <div>
+          <strong>🛒 Marca lo que ya compraste</strong>
+          <p>En la pestaña Compra vas a ver todo lo que falta comprar. Cuando lo tengas, toca el botón "Comprado" junto al producto y vuelve solo a donde corresponda (nevera o alacena).</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">5</div>
+        <div>
+          <strong>👨‍🍳 Pide ideas al Chef IA</strong>
+          <p>En la pestaña Chef IA, contale qué comida quieres (desayuno, almuerzo, cena...) y te arma una receta con lo que tienes en la nevera y la alacena.</p>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-num">6</div>
+        <div>
+          <strong>🔑 Comparte tu nevera</strong>
+          <p>Toca el ícono 🔑 arriba para ver el código de tu nevera y compartirlo con tu familia.</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-secondary" id="closeHelpBtn">Entendido</button>
+  </div>
+
   <nav id="mainNav" style="display:none;">
     <button id="tab-fridge" class="active">🧊 Nevera <span class="count" id="count-fridge">0</span></button>
+    <button id="tab-pantry">🥫 Alacena <span class="count" id="count-pantry">0</span></button>
     <button id="tab-shop">🛒 Compra <span class="count coral" id="count-shop">0</span></button>
-    <button id="tab-chef">👨‍🍳 Chef IA</button>
+    <button id="tab-chef">👨‍🍳 Chef</button>
   </nav>
 
   <main id="main">
@@ -547,7 +654,7 @@
 
   <div class="addbar" id="addbar" style="display:none;">
     <div class="addbar-inner">
-      <input id="addInput" type="text" placeholder="Añadir producto..." autocomplete="off">
+      <input id="addInput" type="text" placeholder="Leche, huevos, pan... (separados por coma)" autocomplete="off">
       <button id="addBtn">+</button>
     </div>
   </div>
@@ -586,7 +693,7 @@ const GEMINI_API_KEY = "AQ.Ab8RN6L5VlP_tdAIfFwUTruGYI0A7OA1kt7Kq0QFKT48lI5JVw";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_MODEL_FALLBACK = "gemini-3.5-flash";
 
-let state = { fridge: [], shopping: [] };
+let state = { fridge: [], shopping: [], pantry: [] };
 let currentTab = 'fridge';
 let loaded = false;
 let chefMessages = []; // {role: 'user'|'model', text: '...'}
@@ -634,12 +741,12 @@ db.ref('.info/connected').on('value', (snap) => {
 // ============ AUTENTICACIÓN ============
 
 function showScreen(name){
-  ['authScreen','householdScreen','codeScreen'].forEach(id=>{
+  ['authScreen','householdScreen','codeScreen','helpScreen'].forEach(id=>{
     document.getElementById(id).style.display = (id === name) ? 'flex' : 'none';
   });
   document.getElementById('mainNav').style.display = (name === null) ? 'flex' : 'none';
   document.getElementById('main').style.display = (name === null) ? 'block' : 'none';
-  document.getElementById('headerActions').style.display = (name === null || name === 'codeScreen') ? 'flex' : 'none';
+  document.getElementById('headerActions').style.display = (name === null || name === 'codeScreen' || name === 'helpScreen') ? 'flex' : 'none';
   document.getElementById('connbadge').style.display = (name === null) ? 'inline-flex' : 'none';
 }
 
@@ -751,6 +858,12 @@ document.getElementById('codeBtn').addEventListener('click', ()=>{
   showScreen('codeScreen');
 });
 document.getElementById('closeCodeBtn').addEventListener('click', ()=> showScreen(null));
+
+document.getElementById('helpBtn').addEventListener('click', ()=> showScreen('helpScreen'));
+document.getElementById('closeHelpBtn').addEventListener('click', ()=> {
+  localStorage.setItem('neveraTutorialVisto', '1');
+  showScreen(null);
+});
 document.getElementById('codeDisplay').addEventListener('click', ()=>{
   if(!householdId) return;
   navigator.clipboard?.writeText(householdId).then(()=> showStatus('Código copiado'));
@@ -763,16 +876,21 @@ function connectToHousehold(){
   setActiveTab('fridge');
   document.getElementById('subtitle').textContent = 'Cargando...';
 
+  if(!localStorage.getItem('neveraTutorialVisto')){
+    setTimeout(()=> showScreen('helpScreen'), 400);
+  }
+
   dataRef = db.ref(`households/${householdId}/data`);
   dataRef.on('value', (snapshot) => {
     const val = snapshot.val();
     if(val){
       state = {
         fridge: val.fridge ? Object.values(val.fridge) : [],
-        shopping: val.shopping ? Object.values(val.shopping) : []
+        shopping: val.shopping ? Object.values(val.shopping) : [],
+        pantry: val.pantry ? Object.values(val.pantry) : []
       };
     } else {
-      state = { fridge: [], shopping: [] };
+      state = { fridge: [], shopping: [], pantry: [] };
     }
     loaded = true;
     document.getElementById('subtitle').textContent = 'Toca un producto cuando se acabe';
@@ -785,7 +903,7 @@ function connectToHousehold(){
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
   householdId = null;
-  state = { fridge: [], shopping: [] };
+  state = { fridge: [], shopping: [], pantry: [] };
   loaded = false;
   chefMessages = [];
 
@@ -817,32 +935,35 @@ function saveState(){
   state.fridge.forEach(item => fridgeObj[item.id] = item);
   const shoppingObj = {};
   state.shopping.forEach(item => shoppingObj[item.id] = item);
+  const pantryObj = {};
+  state.pantry.forEach(item => pantryObj[item.id] = item);
 
-  dataRef.set({ fridge: fridgeObj, shopping: shoppingObj }).catch(()=>{
+  dataRef.set({ fridge: fridgeObj, shopping: shoppingObj, pantry: pantryObj }).catch(()=>{
     showStatus('No se pudo guardar. Revisa tu conexión.');
   });
 }
 
-function addFridgeItem(name){
-  name = name.trim();
-  if(!name) return;
-  state.fridge.push({ id: uid(), name });
-  saveState();
+function splitMultipleItems(text){
+  return text
+    .split(/[,\n]/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
 }
 
-function addShopItem(name){
-  name = name.trim();
-  if(!name) return;
-  state.shopping.push({ id: uid(), name });
+function addItemsToList(listKey, text){
+  const names = splitMultipleItems(text);
+  if(names.length === 0) return;
+  names.forEach(name => state[listKey].push({ id: uid(), name }));
   saveState();
+  if(names.length > 1) showStatus(`${names.length} productos añadidos`);
 }
 
-function moveToShopping(id){
-  const idx = state.fridge.findIndex(i => i.id === id);
+function moveToShopping(fromList, id){
+  const idx = state[fromList].findIndex(i => i.id === id);
   if(idx === -1) return;
-  const item = state.fridge[idx];
-  state.fridge.splice(idx,1);
-  state.shopping.push({ id: uid(), name: item.name });
+  const item = state[fromList][idx];
+  state[fromList].splice(idx,1);
+  state.shopping.push({ id: uid(), name: item.name, returnTo: fromList });
   saveState();
   showStatus(`"${item.name}" añadido a la lista de compra`);
 }
@@ -852,9 +973,10 @@ function markBought(id){
   if(idx === -1) return;
   const item = state.shopping[idx];
   state.shopping.splice(idx,1);
-  state.fridge.push({ id: uid(), name: item.name });
+  const target = (item.returnTo === 'pantry') ? 'pantry' : 'fridge';
+  state[target].push({ id: uid(), name: item.name });
   saveState();
-  showStatus(`"${item.name}" de vuelta en la nevera`);
+  showStatus(`"${item.name}" de vuelta en ${target === 'pantry' ? 'la alacena' : 'la nevera'}`);
 }
 
 function deleteItem(list, id){
@@ -865,6 +987,7 @@ function deleteItem(list, id){
 function render(){
   document.getElementById('count-fridge').textContent = state.fridge.length;
   document.getElementById('count-shop').textContent = state.shopping.length;
+  document.getElementById('count-pantry').textContent = state.pantry.length;
 
   const main = document.getElementById('main');
   const addbar = document.getElementById('addbar');
@@ -882,7 +1005,7 @@ function render(){
 
   if(currentTab === 'fridge'){
     addbar.classList.remove('shop');
-    addInput.placeholder = 'Añadir producto a la nevera...';
+    addInput.placeholder = 'Leche, huevos, pan... (separados por coma)';
     if(state.fridge.length === 0){
       main.innerHTML = `<div class="empty"><div class="big">🧊</div><p>Tu nevera está vacía.</p><p>Añade lo que tengas ahí abajo.</p></div>`;
       return;
@@ -891,15 +1014,30 @@ function render(){
       <div class="item" data-id="${item.id}">
         <span class="dot"></span>
         <span class="name">${escapeHtml(item.name)}</span>
-        <button class="action" data-action="out" data-id="${item.id}">Se acabó</button>
-        <button class="del" data-action="del-fridge" data-id="${item.id}">✕</button>
+        <button class="action" data-action="out" data-list="fridge" data-id="${item.id}">Se acabó</button>
+        <button class="del" data-action="del" data-list="fridge" data-id="${item.id}">✕</button>
+      </div>
+    `).join('')}</div>`;
+  } else if(currentTab === 'pantry'){
+    addbar.classList.remove('shop');
+    addInput.placeholder = 'Arroz, fideos, atún... (separados por coma)';
+    if(state.pantry.length === 0){
+      main.innerHTML = `<div class="empty"><div class="big">🥫</div><p>Tu alacena está vacía.</p><p>Añade productos no perecederos ahí abajo.</p></div>`;
+      return;
+    }
+    main.innerHTML = `<div class="list">${state.pantry.map(item => `
+      <div class="item" data-id="${item.id}">
+        <span class="dot"></span>
+        <span class="name">${escapeHtml(item.name)}</span>
+        <button class="action" data-action="out" data-list="pantry" data-id="${item.id}">Se acabó</button>
+        <button class="del" data-action="del" data-list="pantry" data-id="${item.id}">✕</button>
       </div>
     `).join('')}</div>`;
   } else {
     addbar.classList.add('shop');
-    addInput.placeholder = 'Añadir a la lista de compra...';
+    addInput.placeholder = 'Leche, huevos, pan... (separados por coma)';
     if(state.shopping.length === 0){
-      main.innerHTML = `<div class="empty"><div class="big">🛒</div><p>Nada por comprar.</p><p>Cuando algo se acabe en la nevera, aparecerá aquí.</p></div>`;
+      main.innerHTML = `<div class="empty"><div class="big">🛒</div><p>Nada por comprar.</p><p>Cuando algo se acabe, aparecerá aquí.</p></div>`;
       return;
     }
     main.innerHTML = `<div class="list">${state.shopping.map(item => `
@@ -907,7 +1045,7 @@ function render(){
         <span class="dot"></span>
         <span class="name">${escapeHtml(item.name)}</span>
         <button class="action" data-action="bought" data-id="${item.id}">Comprado</button>
-        <button class="del" data-action="del-shop" data-id="${item.id}">✕</button>
+        <button class="del" data-action="del" data-list="shopping" data-id="${item.id}">✕</button>
       </div>
     `).join('')}</div>`;
   }
@@ -922,6 +1060,7 @@ function escapeHtml(str){
 function setActiveTab(tab){
   currentTab = tab;
   document.getElementById('tab-fridge').classList.toggle('active', tab==='fridge');
+  document.getElementById('tab-pantry').classList.toggle('active', tab==='pantry');
   document.getElementById('tab-shop').classList.toggle('active', tab==='shop');
   document.getElementById('tab-chef').classList.toggle('active', tab==='chef');
   document.getElementById('addbar').style.display = (tab==='chef') ? 'none' : 'flex';
@@ -930,6 +1069,7 @@ function setActiveTab(tab){
 }
 
 document.getElementById('tab-fridge').addEventListener('click', ()=> setActiveTab('fridge'));
+document.getElementById('tab-pantry').addEventListener('click', ()=> setActiveTab('pantry'));
 document.getElementById('tab-shop').addEventListener('click', ()=> setActiveTab('shop'));
 document.getElementById('tab-chef').addEventListener('click', ()=> setActiveTab('chef'));
 
@@ -937,17 +1077,17 @@ document.getElementById('main').addEventListener('click', (e)=>{
   const btn = e.target.closest('button');
   if(!btn) return;
   const action = btn.dataset.action;
+  const list = btn.dataset.list;
   const id = btn.dataset.id;
-  if(action === 'out') moveToShopping(id);
+  if(action === 'out') moveToShopping(list, id);
   else if(action === 'bought') markBought(id);
-  else if(action === 'del-fridge') deleteItem('fridge', id);
-  else if(action === 'del-shop') deleteItem('shopping', id);
+  else if(action === 'del') deleteItem(list, id);
 });
 
 document.getElementById('addBtn').addEventListener('click', ()=>{
   const val = document.getElementById('addInput').value;
-  if(currentTab === 'fridge') addFridgeItem(val);
-  else addShopItem(val);
+  const targetList = (currentTab === 'fridge' || currentTab === 'pantry') ? currentTab : 'shopping';
+  addItemsToList(targetList, val);
   document.getElementById('addInput').value = '';
   document.getElementById('addInput').focus();
 });
@@ -1041,13 +1181,15 @@ async function callGemini(modelName, body){
 async function askChef(userText){
   const hour = new Date().getHours();
   const mealNow = getMealSuggestion();
-  const fridgeList = state.fridge.map(i => i.name).join(', ') || '(la nevera está vacía por ahora)';
+  const fridgeList = state.fridge.map(i => i.name).join(', ') || '(vacía por ahora)';
+  const pantryList = state.pantry.map(i => i.name).join(', ') || '(vacía por ahora)';
 
   const systemInstruction = `Eres "Chef IA", un asistente de cocina amigable dentro de una app llamada "Mi Nevera". 
 Hablas siempre en español, de forma cálida y breve.
-Estos son los productos que el usuario tiene actualmente en su nevera: ${fridgeList}.
+En la nevera (productos frescos/perecederos) el usuario tiene: ${fridgeList}.
+En la alacena (productos no perecederos: enlatados, pastas, arroz, condimentos, etc.) el usuario tiene: ${pantryList}.
 La hora actual es las ${hour}:00, lo que sugiere que podría ser hora de: ${mealNow}.
-Cuando el usuario te pida una receta (desayuno, almuerzo, merienda, cena o picada), proponle una receta concreta usando principalmente lo que tiene en la nevera. Si le falta algún ingrediente básico (sal, aceite, algún condimento) puedes asumir que lo tiene. Si falta algo importante que no está en la lista, sugiérelo como opcional.
+Cuando el usuario te pida una receta (desayuno, almuerzo, merienda, cena o picada), proponle una receta concreta usando principalmente lo que tiene en la nevera y la alacena combinadas. Si le falta algún ingrediente básico (sal, aceite, algún condimento) puedes asumir que lo tiene. Si falta algo importante que no está en ninguna de las dos listas, sugiérelo como opcional.
 Da la receta en formato simple: nombre del plato, ingredientes con cantidades aproximadas, y pasos numerados cortos. No uses markdown con asteriscos, solo texto plano con saltos de línea.
 Si el usuario solo saluda o charla, responde de forma breve y amistosa, y pregúntale qué comida quiere armar.`;
 
