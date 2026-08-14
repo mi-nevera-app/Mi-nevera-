@@ -706,7 +706,7 @@
 
     <div class="field">
       <label id="labelUsername">Nombre de usuario</label>
-      <input type="text" id="usernameInput" placeholder="Ej: Benicio" maxlength="20">
+      <input type="text" id="usernameInput" placeholder="Tu nombre" maxlength="20">
     </div>
 
     <label id="labelAvatar" class="avatar-label">Elige un avatar</label>
@@ -922,6 +922,7 @@ const I18N = {
     profileTitle: "Elige tu nombre y avatar",
     profileSub: "Así te van a ver los demás en tu nevera",
     labelUsername: "Nombre de usuario",
+    usernamePlaceholder: "Tu nombre",
     labelAvatar: "Elige un avatar",
     continueBtn: "Continuar",
     usernameTooShort: "Usa al menos 2 letras o números.",
@@ -997,6 +998,7 @@ const I18N = {
     profileTitle: "Choose your name and avatar",
     profileSub: "This is how others will see you in your fridge",
     labelUsername: "Username",
+    usernamePlaceholder: "Your name",
     labelAvatar: "Choose an avatar",
     continueBtn: "Continue",
     usernameTooShort: "Use at least 2 letters or numbers.",
@@ -1781,6 +1783,7 @@ function applyLanguage(){
   document.getElementById('profileTitle').textContent = t('profileTitle');
   document.getElementById('profileSub').textContent = t('profileSub');
   document.getElementById('labelUsername').textContent = t('labelUsername');
+  document.getElementById('usernameInput').placeholder = t('usernamePlaceholder');
   document.getElementById('labelAvatar').textContent = t('labelAvatar');
   document.getElementById('saveProfileBtn').textContent = t('continueBtn');
 
