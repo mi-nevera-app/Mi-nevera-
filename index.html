@@ -698,7 +698,7 @@
 
   <!-- ==== PANTALLA: PERFIL (NOMBRE + AVATAR) ==== -->
   <div class="screen" id="profileScreen" style="display:none;">
-    <div class="icon">🙂</div>
+    <div class="icon" id="profilePreviewIcon">🙂</div>
     <h2 id="profileTitle">Elige tu nombre y avatar</h2>
     <p class="sub" id="profileSub">Así te van a ver los demás en tu nevera</p>
 
@@ -1326,6 +1326,8 @@ function renderAvatarGrid(){
       renderAvatarGrid();
     });
   });
+  const previewIcon = document.getElementById('profilePreviewIcon');
+  if(previewIcon) previewIcon.textContent = selectedAvatar;
 }
 
 function normalizeUsername(name){
