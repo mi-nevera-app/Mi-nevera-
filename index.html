@@ -158,6 +158,37 @@
     background: var(--coral-light);
     color: var(--coral);
   }
+  .qty-control{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    flex-shrink:0;
+    background: var(--sage-light);
+    border-radius: 10px;
+    padding: 2px;
+  }
+  .qty-btn{
+    border:none;
+    background: var(--card);
+    color: var(--sage);
+    width: 26px; height:26px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+  }
+  .qty-btn:active{ background: var(--sage); color:white; }
+  .qty-num{
+    min-width: 22px;
+    text-align:center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
   .item button.del{
     border:none;
     background:transparent;
@@ -668,7 +699,7 @@
         <div class="help-num">3</div>
         <div>
           <strong id="help3Title">🧊🥫 Marca lo que se acabó</strong>
-          <p id="help3Text">Junto a cada producto (en Nevera o Alacena) hay un botón "Se acabó". Al tocarlo, pasa solo a la pestaña 🛒 Compra.</p>
+          <p id="help3Text">Junto a cada producto (en Nevera o Alacena) hay un contador − y +. Toca − hasta llegar a 0 y pasa solo a la pestaña 🛒 Compra.</p>
         </div>
       </div>
       <div class="help-step">
@@ -769,7 +800,7 @@ const I18N = {
     helpTitle: "Cómo funciona", closeHelp: "Entendido",
     help1Title: "🧊 Añade lo que tengas", help1Text: 'En la pestaña Nevera, escribe uno o varios productos separados por coma (ej: "leche, huevos, pan") y toca +.',
     help2Title: "🥫 Usa la Alacena para lo no perecedero", help2Text: "Arroz, fideos, enlatados, condimentos... todo lo que no se guarda en frío va en su propia pestaña, separado de la nevera.",
-    help3Title: "🧊🥫 Marca lo que se acabó", help3Text: 'Junto a cada producto (en Nevera o Alacena) hay un botón "Se acabó". Al tocarlo, pasa solo a la pestaña 🛒 Compra.',
+    help3Title: "🧊🥫 Marca lo que se acabó", help3Text: 'Junto a cada producto (en Nevera o Alacena) hay un contador − y +. Toca − hasta llegar a 0 y pasa solo a la pestaña 🛒 Compra.',
     help4Title: "🛒 Marca lo que ya compraste", help4Text: 'En la pestaña Compra vas a ver todo lo que falta comprar. Cuando lo tengas, toca el botón "Comprado" junto al producto y vuelve solo a donde corresponda (nevera o alacena).',
     help5Title: "👨‍🍳 Pide ideas al Chef IA", help5Text: "En la pestaña Chef IA, contale qué comida quieres (desayuno, almuerzo, cena...) y te arma una receta con lo que tienes en la nevera y la alacena.",
     help6Title: "🔑 Comparte tu nevera", help6Text: "Toca el ícono 🔑 arriba para ver el código de tu nevera y compartirlo con tu familia.",
@@ -836,7 +867,7 @@ const I18N = {
     helpTitle: "How it works", closeHelp: "Got it",
     help1Title: "🧊 Add what you have", help1Text: 'In the Fridge tab, type one or more products separated by commas (e.g. "milk, eggs, bread") and tap +.',
     help2Title: "🥫 Use the Pantry for non-perishables", help2Text: "Rice, pasta, canned goods, spices... anything that doesn't need to be kept cold has its own tab, separate from the fridge.",
-    help3Title: "🧊🥫 Mark what ran out", help3Text: 'Next to each product (in Fridge or Pantry) there\'s an "Out" button. Tapping it moves it straight to the 🛒 Shopping tab.',
+    help3Title: "🧊🥫 Mark what ran out", help3Text: 'Next to each product (in Fridge or Pantry) there\'s a − and + counter. Tap − down to 0 and it moves straight to the 🛒 Shopping tab.',
     help4Title: "🛒 Mark what you already bought", help4Text: 'The Shopping tab shows everything you still need to buy. Once you have it, tap "Bought" next to the item and it\'ll go back to where it belongs (fridge or pantry).',
     help5Title: "👨‍🍳 Ask the AI Chef for ideas", help5Text: "In the Chef tab, tell it what meal you want (breakfast, lunch, dinner...) and it'll build a recipe from what's in your fridge and pantry.",
     help6Title: "🔑 Share your fridge", help6Text: "Tap the 🔑 icon above to see your fridge's code and share it with your family.",
@@ -1204,9 +1235,22 @@ function splitMultipleItems(text){
 function addItemsToList(listKey, text){
   const names = splitMultipleItems(text);
   if(names.length === 0) return;
-  names.forEach(name => state[listKey].push({ id: uid(), name }));
+  names.forEach(name => state[listKey].push({ id: uid(), name, qty: 1 }));
   saveState();
   if(names.length > 1) showStatus(t('itemsAdded', { n: names.length }));
+}
+
+function changeQty(list, id, delta){
+  const item = state[list].find(i => i.id === id);
+  if(!item) return;
+  const current = item.qty || 1;
+  const next = current + delta;
+  if(next <= 0){
+    moveToShopping(list, id);
+    return;
+  }
+  item.qty = next;
+  saveState();
 }
 
 function moveToShopping(fromList, id){
@@ -1225,7 +1269,7 @@ function markBought(id){
   const item = state.shopping[idx];
   state.shopping.splice(idx,1);
   const target = (item.returnTo === 'pantry') ? 'pantry' : 'fridge';
-  state[target].push({ id: uid(), name: item.name });
+  state[target].push({ id: uid(), name: item.name, qty: 1 });
   saveState();
   showStatus(t(target === 'pantry' ? 'backToPantry' : 'backToFridge', { name: item.name }));
 }
@@ -1265,7 +1309,11 @@ function render(){
       <div class="item" data-id="${item.id}">
         <span class="dot"></span>
         <span class="name">${escapeHtml(item.name)}</span>
-        <button class="action" data-action="out" data-list="fridge" data-id="${item.id}">${t('outBtn')}</button>
+        <div class="qty-control">
+          <button class="qty-btn" data-action="dec" data-list="fridge" data-id="${item.id}">−</button>
+          <span class="qty-num">${item.qty || 1}</span>
+          <button class="qty-btn" data-action="inc" data-list="fridge" data-id="${item.id}">+</button>
+        </div>
         <button class="del" data-action="del" data-list="fridge" data-id="${item.id}">✕</button>
       </div>
     `).join('')}</div>`;
@@ -1280,7 +1328,11 @@ function render(){
       <div class="item" data-id="${item.id}">
         <span class="dot"></span>
         <span class="name">${escapeHtml(item.name)}</span>
-        <button class="action" data-action="out" data-list="pantry" data-id="${item.id}">${t('outBtn')}</button>
+        <div class="qty-control">
+          <button class="qty-btn" data-action="dec" data-list="pantry" data-id="${item.id}">−</button>
+          <span class="qty-num">${item.qty || 1}</span>
+          <button class="qty-btn" data-action="inc" data-list="pantry" data-id="${item.id}">+</button>
+        </div>
         <button class="del" data-action="del" data-list="pantry" data-id="${item.id}">✕</button>
       </div>
     `).join('')}</div>`;
@@ -1333,6 +1385,8 @@ document.getElementById('main').addEventListener('click', (e)=>{
   if(action === 'out') moveToShopping(list, id);
   else if(action === 'bought') markBought(id);
   else if(action === 'del') deleteItem(list, id);
+  else if(action === 'inc') changeQty(list, id, 1);
+  else if(action === 'dec') changeQty(list, id, -1);
 });
 
 document.getElementById('addBtn').addEventListener('click', ()=>{
