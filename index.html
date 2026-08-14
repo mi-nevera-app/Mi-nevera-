@@ -574,6 +574,69 @@
     cursor:pointer;
     outline:none;
   }
+
+  .avatar-label{
+    display:block;
+    font-size: 12.5px;
+    font-weight:600;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .avatar-grid{
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .avatar-option{
+    width:100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--line);
+    font-size: 21px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .avatar-option.selected{
+    border-color: var(--sage);
+    background: var(--sage-light);
+  }
+
+  .members-bar{
+    display:flex;
+    gap: 14px;
+    padding: 0 20px 14px;
+    overflow-x:auto;
+  }
+  .member-chip{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    flex-shrink:0;
+  }
+  .member-avatar{
+    width:38px; height:38px;
+    border-radius:50%;
+    background: var(--sage-light);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 18px;
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  .member-name{
+    font-size: 9.5px;
+    font-weight:600;
+    color: var(--ink-soft);
+    max-width: 50px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
 </style>
 </head>
 <body>
@@ -631,6 +694,25 @@
     <p class="legal-footer" id="legalFooter">
       Al continuar, aceptas los <a href="terminos.html" target="_blank">Términos de uso</a> y la <a href="privacidad.html" target="_blank">Política de privacidad</a>.
     </p>
+  </div>
+
+  <!-- ==== PANTALLA: PERFIL (NOMBRE + AVATAR) ==== -->
+  <div class="screen" id="profileScreen" style="display:none;">
+    <div class="icon">🙂</div>
+    <h2 id="profileTitle">Elige tu nombre y avatar</h2>
+    <p class="sub" id="profileSub">Así te van a ver los demás en tu nevera</p>
+
+    <div class="auth-error" id="profileError"></div>
+
+    <div class="field">
+      <label id="labelUsername">Nombre de usuario</label>
+      <input type="text" id="usernameInput" placeholder="Ej: Benicio" maxlength="20">
+    </div>
+
+    <label id="labelAvatar" class="avatar-label">Elige un avatar</label>
+    <div class="avatar-grid" id="avatarGrid"></div>
+
+    <button class="btn-primary" id="saveProfileBtn">Continuar</button>
   </div>
 
   <!-- ==== PANTALLA: CREAR O UNIRSE A NEVERA ==== -->
@@ -734,6 +816,8 @@
     <button id="tab-chef">👨‍🍳 <span id="tabChefLabel">Chef</span></button>
   </nav>
 
+  <div class="members-bar" id="membersBar" style="display:none;"></div>
+
   <main id="main">
     <div class="loading" id="initialLoading">Cargando...</div>
   </main>
@@ -835,6 +919,14 @@ const I18N = {
     sameCodeError: "Ya estás en esa nevera.",
     confirmSwitch: "¿Seguro que quieres salir de esta nevera y unirte a la nueva? Ya no verás sus productos.",
     confirmNew: "¿Seguro que quieres salir de esta nevera y crear una nueva para vos solo?",
+    profileTitle: "Elige tu nombre y avatar",
+    profileSub: "Así te van a ver los demás en tu nevera",
+    labelUsername: "Nombre de usuario",
+    labelAvatar: "Elige un avatar",
+    continueBtn: "Continuar",
+    usernameTooShort: "Usa al menos 2 letras o números.",
+    usernameTaken: "Ese nombre ya está en uso, prueba otro.",
+    profileSaveError: "No se pudo guardar tu perfil. Intenta de nuevo.",
     meal_breakfast: "desayuno", meal_lunch: "almuerzo", meal_snack: "merienda", meal_dinner: "cena", meal_appetizers: "picada",
     chefMealRequest: "Quiero que me armes una receta de {meal} con lo que tengo en la nevera y la alacena.",
     authErrors: {
@@ -902,6 +994,14 @@ const I18N = {
     sameCodeError: "You're already in that fridge.",
     confirmSwitch: "Are you sure you want to leave this fridge and join the new one? You won't see its products anymore.",
     confirmNew: "Are you sure you want to leave this fridge and create a new one just for you?",
+    profileTitle: "Choose your name and avatar",
+    profileSub: "This is how others will see you in your fridge",
+    labelUsername: "Username",
+    labelAvatar: "Choose an avatar",
+    continueBtn: "Continue",
+    usernameTooShort: "Use at least 2 letters or numbers.",
+    usernameTaken: "That name is already taken, try another one.",
+    profileSaveError: "Couldn't save your profile. Try again.",
     meal_breakfast: "breakfast", meal_lunch: "lunch", meal_snack: "snack", meal_dinner: "dinner", meal_appetizers: "appetizers",
     chefMealRequest: "I'd like a {meal} recipe using what I have in my fridge and pantry.",
     authErrors: {
@@ -937,6 +1037,7 @@ let chefLoading = false;
 let currentUser = null;
 let householdId = null;
 let dataRef = null;
+let membersRef = null;
 let authMode = 'login'; // 'login' | 'signup'
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -978,7 +1079,7 @@ db.ref('.info/connected').on('value', (snap) => {
 // ============ AUTENTICACIÓN ============
 
 function showScreen(name){
-  ['authScreen','householdScreen','codeScreen','helpScreen'].forEach(id=>{
+  ['authScreen','profileScreen','householdScreen','codeScreen','helpScreen'].forEach(id=>{
     document.getElementById(id).style.display = (id === name) ? 'flex' : 'none';
   });
   document.getElementById('mainNav').style.display = (name === null) ? 'flex' : 'none';
@@ -1040,6 +1141,7 @@ document.getElementById('authSubmitBtn').addEventListener('click', async ()=>{
 
 document.getElementById('logoutBtn').addEventListener('click', ()=>{
   if(dataRef) dataRef.off();
+  if(membersRef) membersRef.off();
   auth.signOut();
 });
 
@@ -1072,6 +1174,8 @@ async function leaveCurrentHousehold(){
     try{ await db.ref(`households/${householdId}/members/${currentUser.uid}`).remove(); }catch(e){}
   }
   if(dataRef){ dataRef.off(); dataRef = null; }
+  if(membersRef){ membersRef.off(); membersRef = null; }
+  document.getElementById('membersBar').style.display = 'none';
 }
 
 document.getElementById('createHouseholdBtn').addEventListener('click', async ()=>{
@@ -1178,26 +1282,95 @@ function connectToHousehold(){
     document.getElementById('subtitle').textContent = t('subtitleReady');
     render();
   });
+
+  loadMembersBar();
+}
+
+function loadMembersBar(){
+  const bar = document.getElementById('membersBar');
+  bar.style.display = 'flex';
+  membersRef = db.ref(`households/${householdId}/members`);
+  membersRef.on('value', async (snap) => {
+    const uids = snap.exists() ? Object.keys(snap.val()) : [];
+    const profileEntries = await Promise.all(uids.map(async (uid) => {
+      try{
+        const pSnap = await db.ref('profiles/'+uid).once('value');
+        const p = pSnap.val() || {};
+        return { uid, username: p.username || '?', avatar: p.avatar || '🙂' };
+      }catch(e){
+        return { uid, username: '?', avatar: '🙂' };
+      }
+    }));
+    bar.innerHTML = profileEntries.map(p => `
+      <div class="member-chip" title="${escapeHtml(p.username)}">
+        <div class="member-avatar">${p.avatar}</div>
+        <div class="member-name">${escapeHtml(p.username)}</div>
+      </div>
+    `).join('');
+  });
 }
 
 // ============ ESTADO DE SESIÓN ============
 
-auth.onAuthStateChanged(async (user) => {
-  currentUser = user;
-  householdId = null;
-  state = { fridge: [], shopping: [], pantry: [] };
-  loaded = false;
-  chefMessages = [];
+const AVATAR_OPTIONS = ['🦊','🐼','🐸','🐧','🦁','🐨','🐯','🐶','🐱','🦄','🐵','🐮','🐷','🐰','🦉','🐢','🦈','🐙','🌵','🍉'];
+let selectedAvatar = AVATAR_OPTIONS[0];
 
-  if(!user){
-    updateAuthScreenMode();
-    showScreen('authScreen');
+function renderAvatarGrid(){
+  const grid = document.getElementById('avatarGrid');
+  grid.innerHTML = AVATAR_OPTIONS.map(a => `
+    <div class="avatar-option ${a === selectedAvatar ? 'selected' : ''}" data-avatar="${a}">${a}</div>
+  `).join('');
+  grid.querySelectorAll('.avatar-option').forEach(el => {
+    el.addEventListener('click', ()=>{
+      selectedAvatar = el.dataset.avatar;
+      renderAvatarGrid();
+    });
+  });
+}
+
+function normalizeUsername(name){
+  return name.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+}
+
+document.getElementById('saveProfileBtn').addEventListener('click', async ()=>{
+  const errEl = document.getElementById('profileError');
+  errEl.classList.remove('show');
+  const rawName = document.getElementById('usernameInput').value;
+  const key = normalizeUsername(rawName);
+
+  if(key.length < 2){
+    errEl.textContent = t('usernameTooShort');
+    errEl.classList.add('show');
     return;
   }
 
-  // Usuario logueado: revisamos si ya tiene una nevera asignada
   try{
-    const snap = await db.ref(`users/${user.uid}`).once('value');
+    const result = await db.ref('usernames/'+key).transaction(current => {
+      if(current === null) return currentUser.uid;
+      return undefined; // aborta la transacción, ya está ocupado
+    });
+
+    if(!result.committed || result.snapshot.val() !== currentUser.uid){
+      errEl.textContent = t('usernameTaken');
+      errEl.classList.add('show');
+      return;
+    }
+
+    await db.ref('profiles/'+currentUser.uid).set({
+      username: rawName.trim(),
+      avatar: selectedAvatar
+    });
+
+    await proceedAfterProfile();
+  }catch(err){
+    errEl.textContent = t('profileSaveError');
+    errEl.classList.add('show');
+  }
+});
+
+async function proceedAfterProfile(){
+  try{
+    const snap = await db.ref(`users/${currentUser.uid}`).once('value');
     const profile = snap.val();
     if(profile && profile.householdId){
       householdId = profile.householdId;
@@ -1209,6 +1382,40 @@ auth.onAuthStateChanged(async (user) => {
   }catch(err){
     showScreen('householdScreen');
   }
+}
+
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  householdId = null;
+  state = { fridge: [], shopping: [], pantry: [] };
+  loaded = false;
+  chefMessages = [];
+  if(membersRef){ membersRef.off(); membersRef = null; }
+  document.getElementById('membersBar').style.display = 'none';
+
+  if(!user){
+    updateAuthScreenMode();
+    showScreen('authScreen');
+    return;
+  }
+
+  // Usuario logueado: primero revisamos si ya tiene perfil (nombre + avatar)
+  try{
+    const pSnap = await db.ref(`profiles/${user.uid}`).once('value');
+    if(!pSnap.exists()){
+      document.getElementById('profileError').classList.remove('show');
+      document.getElementById('usernameInput').value = '';
+      selectedAvatar = AVATAR_OPTIONS[0];
+      renderAvatarGrid();
+      showScreen('profileScreen');
+      return;
+    }
+  }catch(err){
+    // si falla la lectura, igual dejamos seguir el flujo normal
+  }
+
+  // Ya tiene perfil: revisamos si ya tiene una nevera asignada
+  await proceedAfterProfile();
 });
 
 function saveState(){
@@ -1568,6 +1775,12 @@ function applyLanguage(){
   document.getElementById('labelSwitchCode').textContent = t('labelSwitchCode');
   document.getElementById('switchJoinBtn').textContent = t('switchJoinBtn');
   document.getElementById('switchNewBtn').textContent = t('switchNewBtn');
+
+  document.getElementById('profileTitle').textContent = t('profileTitle');
+  document.getElementById('profileSub').textContent = t('profileSub');
+  document.getElementById('labelUsername').textContent = t('labelUsername');
+  document.getElementById('labelAvatar').textContent = t('labelAvatar');
+  document.getElementById('saveProfileBtn').textContent = t('continueBtn');
 
   document.getElementById('helpTitle').textContent = t('helpTitle');
   document.getElementById('closeHelpBtn').textContent = t('closeHelp');
