@@ -43,7 +43,7 @@
   }
 
   header{
-    padding: 28px 20px 16px;
+    padding: 28px 88px 16px;
     text-align:center;
   }
   header .magnet{
@@ -1441,6 +1441,14 @@ function showScreen(name){
   document.getElementById('headerActions').style.display = (name === null || name === 'codeScreen' || name === 'helpScreen') ? 'flex' : 'none';
   document.getElementById('connbadge').style.display = (name === null) ? 'inline-flex' : 'none';
   if(name !== 'scanScreen') stopScan();
+
+  if(name !== null){
+    document.getElementById('addbar').style.display = 'none';
+    document.getElementById('chefbar').style.display = 'none';
+  } else {
+    document.getElementById('addbar').style.display = (currentTab === 'chef') ? 'none' : 'flex';
+    document.getElementById('chefbar').style.display = (currentTab === 'chef') ? 'flex' : 'none';
+  }
 }
 
 function setAuthError(msg){
