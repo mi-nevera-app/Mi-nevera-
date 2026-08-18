@@ -1043,6 +1043,7 @@
       <button class="icon-btn-x" id="closeMapBtn">✕</button>
     </div>
     <div id="mapStatus" class="map-status">Obteniendo tu ubicación...</div>
+    <button class="btn-secondary" id="mapRetryBtn" style="display:none; margin-bottom:14px;">Reintentar</button>
     <div id="leafletMap" class="leaflet-box"></div>
     <div id="storeList" class="store-list"></div>
   </div>
@@ -1212,7 +1213,7 @@ const I18N = {
     mapTitle: "Supermercados cerca",
     mapLocating: "Obteniendo tu ubicación...",
     mapSearching: "Buscando supermercados cercanos...",
-    mapLocationDenied: "No pudimos acceder a tu ubicación. Revisa los permisos del navegador.",
+    mapLocationDenied: "No pudimos acceder a tu ubicación. Andá a Configuración > Safari (o tu navegador) > Ubicación, y permitila para este sitio. Después tocá Reintentar.",
     mapNoGeoSupport: "Tu navegador no admite ubicación.",
     mapYouAreHere: "Estás acá",
     mapUnnamedStore: "Supermercado",
@@ -1328,7 +1329,7 @@ const I18N = {
     mapTitle: "Nearby supermarkets",
     mapLocating: "Getting your location...",
     mapSearching: "Looking for nearby supermarkets...",
-    mapLocationDenied: "We couldn't access your location. Check your browser permissions.",
+    mapLocationDenied: "We couldn't access your location. Go to Settings > Safari (or your browser) > Location, and allow it for this site. Then tap Retry.",
     mapNoGeoSupport: "Your browser doesn't support location.",
     mapYouAreHere: "You are here",
     mapUnnamedStore: "Supermarket",
@@ -2276,8 +2277,10 @@ function openMapScreen(){
   showScreen('mapScreen');
   const statusEl = document.getElementById('mapStatus');
   const listEl = document.getElementById('storeList');
+  const retryBtn = document.getElementById('mapRetryBtn');
   statusEl.textContent = t('mapLocating');
   listEl.innerHTML = '';
+  retryBtn.style.display = 'none';
 
   if(!navigator.geolocation){
     statusEl.textContent = t('mapNoGeoSupport');
@@ -2291,8 +2294,11 @@ function openMapScreen(){
     await loadNearbyStores(lat, lon);
   }, (err) => {
     statusEl.textContent = t('mapLocationDenied');
+    retryBtn.style.display = 'block';
   }, { enableHighAccuracy:true, timeout:10000 });
 }
+
+document.getElementById('mapRetryBtn').addEventListener('click', openMapScreen);
 
 async function loadNearbyStores(lat, lon){
   const statusEl = document.getElementById('mapStatus');
@@ -2452,7 +2458,7 @@ document.getElementById('photoFileInput').addEventListener('change', async (e)=>
 
   const preview = document.getElementById('photoPreview');
   const rawDataUrl = await fileToDataURL(file);
-  const dataUrl = await resizeImageDataUrl(rawDataUrl, 900, 0.78);
+  const dataUrl = await resizeImageDataUrl(rawDataUrl, 512, 0.6);
   preview.src = dataUrl;
   preview.style.display = 'block';
 
@@ -2528,10 +2534,15 @@ async function detectItemsFromPhoto(dataUrl){
         { text: `Mira esta foto de productos de supermercado o de una nevera/alacena. Identifica cada producto de comida o bebida distinto que puedas ver. Responde ÚNICAMENTE con un array JSON de strings en ${langName}, con el nombre de cada producto (sin cantidades, sin marcas si no son claras), por ejemplo: ["leche","tomates","yogur"]. Si no ves ningún producto, responde con [].` },
         { inlineData: { mimeType: mimeType, data: base64 } }
       ]
-    }]
+    }],
+    generationConfig: {
+      maxOutputTokens: 300,
+      thinkingConfig: { thinkingBudget: 0 }
+    }
   };
 
-  let res = await callGemini(GEMINI_MODEL, body);
+  let res = await callGemini('gemini-2.5-flash-lite', body);
+  if(res.status === 404) res = await callGemini(GEMINI_MODEL, body);
   if(res.status === 404) res = await callGemini(GEMINI_MODEL_FALLBACK, body);
   if(!res.ok) throw new Error('Error de la API: ' + res.status);
 
