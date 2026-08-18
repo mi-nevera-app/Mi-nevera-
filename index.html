@@ -1117,6 +1117,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
 
 <script>
 // ==== CONFIGURACIÓN DE FIREBASE (tu proyecto real) ====
@@ -1238,6 +1239,7 @@ const I18N = {
     photoConfirmText: "Añadir seleccionados",
     photoCancelText: "Cancelar",
     voiceNotSupported: "Tu navegador no admite dictado por voz.",
+    voiceUseKeyboard: "Tocá el ícono de micrófono de tu teclado para dictar productos.",
     voiceError: "No se pudo escuchar. Intenta de nuevo.",
     chefChatTab: "Chat",
     chefFavTab: "Favoritas",
@@ -1353,6 +1355,7 @@ const I18N = {
     photoConfirmText: "Add selected",
     photoCancelText: "Cancel",
     voiceNotSupported: "Your browser doesn't support voice input.",
+    voiceUseKeyboard: "Tap your keyboard's microphone icon to dictate products.",
     voiceError: "Couldn't hear you. Try again.",
     chefChatTab: "Chat",
     chefFavTab: "Favorites",
@@ -1404,11 +1407,11 @@ function genCode(){
   return code;
 }
 
-function showStatus(msg){
+function showStatus(msg, duration){
   const el = document.getElementById('status');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(()=> el.classList.remove('show'), 1400);
+  setTimeout(()=> el.classList.remove('show'), duration || 1400);
 }
 
 let lastConnMode = 'connecting';
@@ -2361,10 +2364,8 @@ document.getElementById('closeMapBtn').addEventListener('click', ()=> showScreen
 
 // ============ CÓDIGO DE BARRAS ============
 
-let scanStream = null;
-let scanDetector = null;
-let scanLoopActive = false;
-let scanStartedAt = 0;
+let zxingReader = null;
+let scanTimeoutId = null;
 
 async function openScanScreen(){
   showScreen('scanScreen');
@@ -2372,47 +2373,28 @@ async function openScanScreen(){
   document.getElementById('scanStatus').style.display = 'block';
   document.getElementById('scanStatus').textContent = t('scanAim');
 
-  if(!('BarcodeDetector' in window)){
-    document.getElementById('scanStatus').textContent = t('scanNotSupported');
-    return;
-  }
-
   try{
-    scanDetector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
-    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    const video = document.getElementById('scanVideo');
-    video.srcObject = scanStream;
-    try{ await video.play(); }catch(playErr){ /* algunos navegadores ya lo reproducen solos */ }
-    scanLoopActive = true;
-    scanStartedAt = Date.now();
-    scanLoop();
+    if(!zxingReader){
+      zxingReader = new ZXing.BrowserMultiFormatReader();
+    }
+
+    scanTimeoutId = setTimeout(()=>{
+      stopScan();
+      document.getElementById('scanStatus').textContent = t('scanTimeout');
+    }, 20000);
+
+    await zxingReader.decodeFromVideoDevice(undefined, 'scanVideo', (result) => {
+      if(result){
+        handleBarcodeDetected(result.getText());
+      }
+    });
   }catch(err){
     document.getElementById('scanStatus').textContent = t('scanCameraError');
   }
 }
 
-async function scanLoop(){
-  const video = document.getElementById('scanVideo');
-  if(!scanLoopActive) return;
-
-  if(Date.now() - scanStartedAt > 20000){
-    scanLoopActive = false;
-    document.getElementById('scanStatus').textContent = t('scanTimeout');
-    return;
-  }
-
-  try{
-    const codes = await scanDetector.detect(video);
-    if(codes.length > 0){
-      scanLoopActive = false;
-      await handleBarcodeDetected(codes[0].rawValue);
-      return;
-    }
-  }catch(err){ /* seguimos intentando */ }
-  requestAnimationFrame(scanLoop);
-}
-
 async function handleBarcodeDetected(code){
+  if(scanTimeoutId){ clearTimeout(scanTimeoutId); scanTimeoutId = null; }
   document.getElementById('scanStatus').textContent = t('scanLookingUp');
   let productName = null;
   try{
@@ -2433,10 +2415,9 @@ async function handleBarcodeDetected(code){
 }
 
 function stopScan(){
-  scanLoopActive = false;
-  if(scanStream){
-    scanStream.getTracks().forEach(tr => tr.stop());
-    scanStream = null;
+  if(scanTimeoutId){ clearTimeout(scanTimeoutId); scanTimeoutId = null; }
+  if(zxingReader){
+    try{ zxingReader.reset(); }catch(e){ /* nada que limpiar */ }
   }
 }
 
@@ -2597,7 +2578,11 @@ document.getElementById('voiceBtn').addEventListener('click', ()=>{
 
   recognition = getSpeechRecognition();
   if(!recognition){
-    showStatus(t('voiceNotSupported'));
+    // Este navegador (típicamente Safari/iPhone) no tiene dictado propio integrado.
+    // Usamos el dictado nativo del teclado del celular en su lugar.
+    const input = document.getElementById('addInput');
+    input.focus();
+    showStatus(t('voiceUseKeyboard'), 4500);
     return;
   }
 
