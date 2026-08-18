@@ -1001,7 +1001,7 @@
         <div class="help-num">5</div>
         <div>
           <strong id="help5Title">🎤📸🏷️ Agregá más rápido</strong>
-          <p id="help5Text">Arriba del cuadro de texto hay tres botones: 🎤 para dictar productos por voz, 📸 para sacar una foto y que la IA los reconozca, y 🏷️ para escanear el código de barras de un producto.</p>
+          <p id="help5Text">Arriba del cuadro de texto hay tres botones: 🎤 para dictar productos por voz (hacé una pausa entre cada uno para que se separen bien), 📸 para sacar una foto y que la IA los reconozca, y 🏷️ para escanear el código de barras de un producto.</p>
         </div>
       </div>
       <div class="help-step">
@@ -1162,7 +1162,7 @@ const I18N = {
     help2Title: "🥫 Usa la Alacena para lo no perecedero", help2Text: "Arroz, fideos, enlatados, condimentos... todo lo que no se guarda en frío va en su propia pestaña, separado de la nevera.",
     help3Title: "🧊🥫 Marca lo que se acabó", help3Text: 'Junto a cada producto (en Nevera o Alacena) hay un contador − y +. Toca − hasta llegar a 0 y pasa solo a la pestaña 🛒 Compra.',
     help4Title: "🛒 Marca lo que ya compraste", help4Text: 'En la pestaña Compra vas a ver todo lo que falta comprar. Cuando lo tengas, toca el botón "Comprado" junto al producto y vuelve solo a donde corresponda (nevera o alacena).',
-    help5Title: "🎤📸🏷️ Agregá más rápido", help5Text: 'Arriba del cuadro de texto hay tres botones: 🎤 para dictar productos por voz, 📸 para sacar una foto y que la IA los reconozca, y 🏷️ para escanear el código de barras de un producto.',
+    help5Title: "🎤📸🏷️ Agregá más rápido", help5Text: 'Arriba del cuadro de texto hay tres botones: 🎤 para dictar productos por voz (hacé una pausa entre cada uno para que se separen bien), 📸 para sacar una foto y que la IA los reconozca, y 🏷️ para escanear el código de barras de un producto.',
     help6Title: "🗺️ Encontrá supermercados cerca", help6Text: 'En la pestaña Compra, tocá "Ver supermercados cercanos" para ver en un mapa los que tenés más cerca, usando tu ubicación.',
     help7Title: "👨‍🍳 Pide ideas al Chef IA", help7Text: "En la pestaña Chef IA, contale qué comida quieres (desayuno, almuerzo, cena...) y te arma una receta con lo que tienes en la nevera y la alacena.",
     help8Title: "⭐ Guardá tus recetas favoritas", help8Text: 'Tocá la estrellita en cualquier receta del Chef IA para guardarla. Después la encontrás en la pestaña "Favoritas", dentro de Chef IA.',
@@ -1222,6 +1222,7 @@ const I18N = {
     scanAim: "Apuntá al código de barras",
     scanNotSupported: "Tu navegador no admite escanear códigos de barras. Probá desde Chrome en Android.",
     scanCameraError: "No se pudo acceder a la cámara.",
+    scanTimeout: "No pudimos detectar un código. Probá acercarte más o con mejor luz, o cargá el producto escribiéndolo.",
     scanLookingUp: "Buscando el producto...",
     scanUnknownProduct: "Producto sin identificar ({code})",
     scanAddText: "Añadir",
@@ -1276,7 +1277,7 @@ const I18N = {
     help2Title: "🥫 Use the Pantry for non-perishables", help2Text: "Rice, pasta, canned goods, spices... anything that doesn't need to be kept cold has its own tab, separate from the fridge.",
     help3Title: "🧊🥫 Mark what ran out", help3Text: 'Next to each product (in Fridge or Pantry) there\'s a − and + counter. Tap − down to 0 and it moves straight to the 🛒 Shopping tab.',
     help4Title: "🛒 Mark what you already bought", help4Text: 'The Shopping tab shows everything you still need to buy. Once you have it, tap "Bought" next to the item and it\'ll go back to where it belongs (fridge or pantry).',
-    help5Title: "🎤📸🏷️ Add things faster", help5Text: "Above the text box there are three buttons: 🎤 to dictate products by voice, 📸 to snap a photo and let AI recognize them, and 🏷️ to scan a product's barcode.",
+    help5Title: "🎤📸🏷️ Add things faster", help5Text: "Above the text box there are three buttons: 🎤 to dictate products by voice (pause between each one so they get separated correctly), 📸 to snap a photo and let AI recognize them, and 🏷️ to scan a product's barcode.",
     help6Title: "🗺️ Find nearby supermarkets", help6Text: 'In the Shopping tab, tap "See nearby supermarkets" to see the closest ones on a map, using your location.',
     help7Title: "👨‍🍳 Ask the AI Chef for ideas", help7Text: "In the Chef tab, tell it what meal you want (breakfast, lunch, dinner...) and it'll build a recipe from what's in your fridge and pantry.",
     help8Title: "⭐ Save your favorite recipes", help8Text: 'Tap the star on any Chef recipe to save it. You\'ll find it later in the "Favorites" tab, inside Chef.',
@@ -1336,6 +1337,7 @@ const I18N = {
     scanAim: "Point at the barcode",
     scanNotSupported: "Your browser doesn't support barcode scanning. Try Chrome on Android.",
     scanCameraError: "Couldn't access the camera.",
+    scanTimeout: "We couldn't detect a barcode. Try getting closer, better lighting, or just type the product in.",
     scanLookingUp: "Looking up the product...",
     scanUnknownProduct: "Unidentified product ({code})",
     scanAddText: "Add",
@@ -2362,6 +2364,7 @@ document.getElementById('closeMapBtn').addEventListener('click', ()=> showScreen
 let scanStream = null;
 let scanDetector = null;
 let scanLoopActive = false;
+let scanStartedAt = 0;
 
 async function openScanScreen(){
   showScreen('scanScreen');
@@ -2379,7 +2382,9 @@ async function openScanScreen(){
     scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     const video = document.getElementById('scanVideo');
     video.srcObject = scanStream;
+    try{ await video.play(); }catch(playErr){ /* algunos navegadores ya lo reproducen solos */ }
     scanLoopActive = true;
+    scanStartedAt = Date.now();
     scanLoop();
   }catch(err){
     document.getElementById('scanStatus').textContent = t('scanCameraError');
@@ -2389,6 +2394,13 @@ async function openScanScreen(){
 async function scanLoop(){
   const video = document.getElementById('scanVideo');
   if(!scanLoopActive) return;
+
+  if(Date.now() - scanStartedAt > 20000){
+    scanLoopActive = false;
+    document.getElementById('scanStatus').textContent = t('scanTimeout');
+    return;
+  }
+
   try{
     const codes = await scanDetector.detect(video);
     if(codes.length > 0){
@@ -2458,7 +2470,8 @@ document.getElementById('photoFileInput').addEventListener('change', async (e)=>
   document.getElementById('photoConfirmBtn').style.display = 'none';
 
   const preview = document.getElementById('photoPreview');
-  const dataUrl = await fileToDataURL(file);
+  const rawDataUrl = await fileToDataURL(file);
+  const dataUrl = await resizeImageDataUrl(rawDataUrl, 900, 0.78);
   preview.src = dataUrl;
   preview.style.display = 'block';
 
@@ -2493,6 +2506,32 @@ function fileToDataURL(file){
     reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(file);
+  });
+}
+
+function resizeImageDataUrl(dataUrl, maxDim, quality){
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if(width > maxDim || height > maxDim){
+        if(width > height){
+          height = Math.round(height * (maxDim / width));
+          width = maxDim;
+        } else {
+          width = Math.round(width * (maxDim / height));
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl); // si falla, usamos la original
+    img.src = dataUrl;
   });
 }
 
@@ -2563,6 +2602,7 @@ document.getElementById('voiceBtn').addEventListener('click', ()=>{
   }
 
   recognition.lang = (lang === 'en') ? 'en-US' : 'es-ES';
+  recognition.continuous = true;
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
 
@@ -2580,9 +2620,15 @@ document.getElementById('voiceBtn').addEventListener('click', ()=>{
     showStatus(t('voiceError'));
   };
   recognition.onresult = (event)=>{
-    const text = event.results[0][0].transcript;
-    const input = document.getElementById('addInput');
-    input.value = input.value ? (input.value + ', ' + text) : text;
+    // En modo continuo, cada pausa natural al hablar genera un resultado nuevo:
+    // lo tratamos como un producto distinto y lo separamos con coma.
+    for(let i = event.resultIndex; i < event.results.length; i++){
+      if(!event.results[i].isFinal) continue;
+      const text = event.results[i][0].transcript.trim();
+      if(!text) continue;
+      const input = document.getElementById('addInput');
+      input.value = input.value ? (input.value + ', ' + text) : text;
+    }
   };
 
   recognition.start();
