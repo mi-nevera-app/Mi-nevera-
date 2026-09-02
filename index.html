@@ -153,30 +153,49 @@
     display:inline-flex;
     width:fit-content;
   }
-  .expiry-input{
-    position:absolute;
-    inset:0;
-    opacity:0;
-    width:100%;
-    height:100%;
-    border:0;
-    padding:0;
-    margin:0;
-    cursor:pointer;
-  }
   .expiry-badge{
-    pointer-events:none;
+    border:none;
     font-size: 11.5px;
     font-weight: 600;
-    padding: 3px 9px;
+    padding: 5px 10px;
     border-radius: 8px;
     white-space:nowrap;
     background: #EFEDE5;
     color: #918f83;
+    cursor:pointer;
+    font-family: inherit;
   }
   .expiry-badge.ok{ background: var(--sage-light); color: var(--sage); }
   .expiry-badge.soon{ background: #FCEBD5; color: #B9791F; }
   .expiry-badge.expired{ background: #F7DADA; color: #B33A3A; }
+  .expiry-popover{
+    position:absolute;
+    top: calc(100% + 5px);
+    left:0;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.14);
+    padding: 6px;
+    z-index: 60;
+    min-width: 168px;
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+  }
+  .expiry-popover button{
+    background:none;
+    border:none;
+    text-align:left;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: var(--ink);
+    cursor:pointer;
+    font-family: inherit;
+  }
+  .expiry-popover button:active{ background: var(--sage-light); }
+  .expiry-popover button.danger{ color: #B33A3A; }
   .item button.action{
     border:none;
     background: var(--sage-light);
@@ -877,6 +896,25 @@
     text-align:center;
     margin: 0 0 12px;
   }
+  .scan-expiry-label{
+    display:block;
+    text-align:center;
+    font-size: 12px;
+    color: #918f83;
+    margin-bottom: 6px;
+  }
+  .scan-expiry-input{
+    display:block;
+    width:100%;
+    box-sizing:border-box;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 14px;
+    background: #fff;
+  }
 
   .photo-preview{
     width:100%;
@@ -1131,6 +1169,8 @@
     <div id="scanStatus" class="scan-status-text">Apuntá al código de barras</div>
     <div id="scanResultBox" class="scan-result-box" style="display:none;">
       <p id="scanResultName" class="scan-result-name"></p>
+      <label class="scan-expiry-label" id="scanExpiryLabel">📅 Vencimiento (opcional)</label>
+      <input type="date" id="scanExpiryInput" class="scan-expiry-input">
       <button class="btn-primary" id="scanAddBtn">Añadir</button>
       <button class="btn-secondary" id="scanAgainBtn">Escanear otro</button>
     </div>
@@ -1250,6 +1290,8 @@ const I18N = {
     emptyFridgeTitle: "Tu nevera está vacía.", emptyFridgeSub: "Añade lo que tengas ahí abajo.",
     emptyPantryTitle: "Tu alacena está vacía.", emptyPantrySub: "Añade productos no perecederos ahí abajo.",
     expiryNone: "📅 Vencimiento", expiryToday: "⚠️ Vence hoy", expiryInDays: "Vence en {n} días", expiryTomorrow: "⚠️ Vence mañana", expiryExpired: "🔴 Venció hace {n} días", expiryExpiredToday: "🔴 Venció hoy",
+    scanExpiryLabel: "📅 Vencimiento (opcional)",
+    expiryQuick3: "🕒 3 días", expiryQuick7: "📅 1 semana", expiryQuick14: "📅 2 semanas", expiryQuick30: "📅 1 mes", expiryQuickCustom: "🗓️ Elegir fecha exacta", expiryQuickClear: "🗑️ Quitar vencimiento",
     emptyShopTitle: "Nada por comprar.", emptyShopSub: "Cuando algo se acabe, aparecerá aquí.",
     outBtn: "Se acabó", boughtBtn: "Comprado",
     chefEmptyPrompt: "Contame qué tenés ganas de comer y armo algo con lo que hay en tu nevera y alacena.",
@@ -1372,6 +1414,8 @@ const I18N = {
     emptyFridgeTitle: "Your fridge is empty.", emptyFridgeSub: "Add what you have below.",
     emptyPantryTitle: "Your pantry is empty.", emptyPantrySub: "Add non-perishable products below.",
     expiryNone: "📅 Expiry date", expiryToday: "⚠️ Expires today", expiryInDays: "Expires in {n} days", expiryTomorrow: "⚠️ Expires tomorrow", expiryExpired: "🔴 Expired {n} days ago", expiryExpiredToday: "🔴 Expired today",
+    scanExpiryLabel: "📅 Expiry date (optional)",
+    expiryQuick3: "🕒 3 days", expiryQuick7: "📅 1 week", expiryQuick14: "📅 2 weeks", expiryQuick30: "📅 1 month", expiryQuickCustom: "🗓️ Pick exact date", expiryQuickClear: "🗑️ Remove expiry date",
     emptyShopTitle: "Nothing to buy.", emptyShopSub: "When something runs out, it'll show up here.",
     outBtn: "Out", boughtBtn: "Bought",
     chefEmptyPrompt: "Tell me what you feel like eating and I'll come up with something from your fridge and pantry.",
@@ -1997,8 +2041,7 @@ function render(){
         <div class="item-main">
           <span class="name">${escapeHtml(item.name)}</span>
           <div class="expiry-wrap">
-            <input type="date" class="expiry-input" data-action="expiry" data-list="fridge" data-id="${item.id}" value="${item.expiry || ''}">
-            <span class="expiry-badge ${exp.cls}">${exp.text}</span>
+            <button type="button" class="expiry-badge ${exp.cls}" data-action="expiry-menu" data-list="fridge" data-id="${item.id}" data-has="${item.expiry ? '1':'0'}">${exp.text}</button>
           </div>
         </div>
         <div class="qty-control">
@@ -2022,8 +2065,7 @@ function render(){
         <div class="item-main">
           <span class="name">${escapeHtml(item.name)}</span>
           <div class="expiry-wrap">
-            <input type="date" class="expiry-input" data-action="expiry" data-list="pantry" data-id="${item.id}" value="${item.expiry || ''}">
-            <span class="expiry-badge ${exp.cls}">${exp.text}</span>
+            <button type="button" class="expiry-badge ${exp.cls}" data-action="expiry-menu" data-list="pantry" data-id="${item.id}" data-has="${item.expiry ? '1':'0'}">${exp.text}</button>
           </div>
         </div>
         <div class="qty-control">
@@ -2093,12 +2135,76 @@ document.getElementById('main').addEventListener('click', (e)=>{
     saveState();
     renderChef();
   }
+  else if(action === 'expiry-menu'){
+    const wrap = btn.closest('.expiry-wrap');
+    openExpiryMenu(wrap, list, id, btn.dataset.has === '1');
+  }
 });
 
-document.getElementById('main').addEventListener('change', (e)=>{
-  const input = e.target.closest('.expiry-input');
-  if(!input) return;
-  setExpiry(input.dataset.list, input.dataset.id, input.value);
+let openExpiryMenuEl = null;
+let closeExpiryMenuOnOutsideClick = null;
+
+function closeExpiryMenu(){
+  if(openExpiryMenuEl){ openExpiryMenuEl.remove(); openExpiryMenuEl = null; }
+  if(closeExpiryMenuOnOutsideClick){
+    document.removeEventListener('click', closeExpiryMenuOnOutsideClick, true);
+    closeExpiryMenuOnOutsideClick = null;
+  }
+}
+
+function addDaysISO(days){
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+
+function openExpiryMenu(wrapEl, list, id, hasExpiry){
+  closeExpiryMenu();
+  const menu = document.createElement('div');
+  menu.className = 'expiry-popover';
+  const options = [
+    { days: 3, label: t('expiryQuick3') },
+    { days: 7, label: t('expiryQuick7') },
+    { days: 14, label: t('expiryQuick14') },
+    { days: 30, label: t('expiryQuick30') },
+  ];
+  menu.innerHTML = options.map(o => `<button type="button" data-days="${o.days}">${o.label}</button>`).join('')
+    + `<button type="button" data-action="custom">${t('expiryQuickCustom')}</button>`
+    + (hasExpiry ? `<button type="button" data-action="clear" class="danger">${t('expiryQuickClear')}</button>` : '');
+  wrapEl.appendChild(menu);
+  openExpiryMenuEl = menu;
+
+  menu.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    if(btn.dataset.days){
+      setExpiry(list, id, addDaysISO(parseInt(btn.dataset.days, 10)));
+      closeExpiryMenu();
+      render();
+    } else if(btn.dataset.action === 'custom'){
+      closeExpiryMenu();
+      const input = document.getElementById('globalExpiryInput');
+      input.dataset.list = list;
+      input.dataset.id = id;
+      input.value = '';
+      if(input.showPicker){ input.showPicker(); } else { input.click(); }
+    } else if(btn.dataset.action === 'clear'){
+      setExpiry(list, id, null);
+      closeExpiryMenu();
+      render();
+    }
+  });
+
+  closeExpiryMenuOnOutsideClick = (ev)=>{
+    if(!menu.contains(ev.target)) closeExpiryMenu();
+  };
+  setTimeout(()=> document.addEventListener('click', closeExpiryMenuOnOutsideClick, true), 0);
+}
+
+document.getElementById('globalExpiryInput').addEventListener('change', (e)=>{
+  const list = e.target.dataset.list;
+  const id = e.target.dataset.id;
+  if(list && id) setExpiry(list, id, e.target.value);
   render();
 });
 
@@ -2368,6 +2474,7 @@ function applyLanguage(){
   document.getElementById('mapTitle').textContent = t('mapTitle');
   document.getElementById('scanTitle').textContent = t('scanTitle');
   document.getElementById('scanAddBtn').textContent = t('scanAddText');
+  document.getElementById('scanExpiryLabel').textContent = t('scanExpiryLabel');
   document.getElementById('scanAgainBtn').textContent = t('scanAgainText');
   document.getElementById('photoConfirmBtn').textContent = t('photoConfirmText');
   document.getElementById('photoCancelBtn').textContent = t('photoCancelText');
@@ -2558,6 +2665,7 @@ let scanTimeoutId = null;
 async function openScanScreen(){
   showScreen('scanScreen');
   document.getElementById('scanResultBox').style.display = 'none';
+  document.getElementById('scanExpiryInput').value = '';
   document.getElementById('scanStatus').style.display = 'block';
   document.getElementById('scanStatus').textContent = t('scanAim');
 
@@ -2614,8 +2722,10 @@ document.getElementById('closeScanBtn').addEventListener('click', ()=>{ stopScan
 document.getElementById('scanAgainBtn').addEventListener('click', openScanScreen);
 document.getElementById('scanAddBtn').addEventListener('click', ()=>{
   const name = document.getElementById('scanResultBox').dataset.name;
+  const expiryVal = document.getElementById('scanExpiryInput').value || null;
   const targetList = (currentTab === 'fridge' || currentTab === 'pantry') ? currentTab : 'fridge';
-  addItemsToList(targetList, name);
+  state[targetList].push({ id: uid(), name, qty: 1, expiry: expiryVal });
+  saveState();
   stopScan();
   showScreen(null);
 });
@@ -2814,5 +2924,6 @@ document.getElementById('voiceBtn').addEventListener('click', ()=>{
 
 applyLanguage();
 </script>
+  <input type="date" id="globalExpiryInput" style="display:none;">
 </body>
 </html>
