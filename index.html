@@ -2225,12 +2225,17 @@ function openExpiryMenu(wrapEl, list, id, hasExpiry){
       dateInput.type = 'date';
       dateInput.className = 'expiry-inline-input';
       badge.replaceWith(dateInput);
-      dateInput.focus();
-      if(dateInput.showPicker){ try{ dateInput.showPicker(); }catch(err){} }
       dateInput.addEventListener('change', ()=>{
         if(dateInput.value) setExpiry(list, id, dateInput.value);
         render();
       });
+      // En iPhone/Safari, abrir el calendario en el mismo toque que activó
+      // este botón hacía que se confundiera y cerrara solo con una fecha random.
+      // Con un pequeño retraso se evita ese choque.
+      setTimeout(()=>{
+        dateInput.focus();
+        if(dateInput.showPicker){ try{ dateInput.showPicker(); }catch(err){} }
+      }, 60);
     } else if(btn.dataset.action === 'clear'){
       setExpiry(list, id, null);
       closeExpiryMenu();
