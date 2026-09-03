@@ -2231,9 +2231,6 @@ function openExpiryMenu(wrapEl, list, id, hasExpiry){
         if(dateInput.value) setExpiry(list, id, dateInput.value);
         render();
       });
-      dateInput.addEventListener('blur', ()=>{
-        setTimeout(()=>{ if(document.body.contains(dateInput)) render(); }, 150);
-      });
     } else if(btn.dataset.action === 'clear'){
       setExpiry(list, id, null);
       closeExpiryMenu();
