@@ -2215,20 +2215,24 @@ function openExpiryMenu(wrapEl, list, id, hasExpiry){
       closeExpiryMenu();
       render();
     } else if(btn.dataset.action === 'custom'){
-      // Reemplazamos las opciones por un campo de fecha REAL y visible.
-      // (el truco de un input escondido no abre el calendario nativo en varios celulares, sobre todo iPhone)
-      menu.innerHTML = `<input type="date" class="expiry-inline-input" id="expiryInlineInput">`;
-      const dateInput = menu.querySelector('#expiryInlineInput');
-      setTimeout(()=>{
-        dateInput.focus();
-        if(dateInput.showPicker){ try{ dateInput.showPicker(); }catch(err){} }
-      }, 0);
+      // En vez de un campo flotando arriba de todo (que en algunos celulares
+      // tapaba o interfería con el calendario nativo), ponemos el campo de
+      // fecha directo en el lugar del producto, como cualquier campo normal.
+      closeExpiryMenu();
+      const badge = wrapEl.querySelector('.expiry-badge');
+      if(!badge) return;
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.className = 'expiry-inline-input';
+      badge.replaceWith(dateInput);
+      dateInput.focus();
+      if(dateInput.showPicker){ try{ dateInput.showPicker(); }catch(err){} }
       dateInput.addEventListener('change', ()=>{
-        if(dateInput.value){
-          setExpiry(list, id, dateInput.value);
-          render();
-        }
-        closeExpiryMenu();
+        if(dateInput.value) setExpiry(list, id, dateInput.value);
+        render();
+      });
+      dateInput.addEventListener('blur', ()=>{
+        setTimeout(()=>{ if(document.body.contains(dateInput)) render(); }, 150);
       });
     } else if(btn.dataset.action === 'clear'){
       setExpiry(list, id, null);
