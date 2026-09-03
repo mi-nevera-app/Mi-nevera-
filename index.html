@@ -1232,7 +1232,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
 
-<input type="date" id="globalExpiryInput" style="display:none;">
+<input type="date" id="globalExpiryInput" style="position:fixed; top:0; left:0; width:1px; height:1px; opacity:0; border:0; padding:0; pointer-events:none; z-index:-1;">
 <script>
 // ==== CONFIGURACIÓN DE FIREBASE (tu proyecto real) ====
 const firebaseConfig = {
@@ -2172,8 +2172,30 @@ function openExpiryMenu(wrapEl, list, id, hasExpiry){
   menu.innerHTML = options.map(o => `<button type="button" data-days="${o.days}">${o.label}</button>`).join('')
     + `<button type="button" data-action="custom">${t('expiryQuickCustom')}</button>`
     + (hasExpiry ? `<button type="button" data-action="clear" class="danger">${t('expiryQuickClear')}</button>` : '');
-  wrapEl.appendChild(menu);
+
+  // Se agrega directo al body (posición fija) para que no quede recortado
+  // por el scroll interno de la lista, algo que pasaba seguido en celulares.
+  menu.style.position = 'fixed';
+  menu.style.visibility = 'hidden';
+  document.body.appendChild(menu);
   openExpiryMenuEl = menu;
+
+  const rect = wrapEl.getBoundingClientRect();
+  const menuRect = menu.getBoundingClientRect();
+  const margin = 8;
+  let left = rect.left;
+  let top = rect.bottom + 5;
+  if(left + menuRect.width > window.innerWidth - margin){
+    left = window.innerWidth - menuRect.width - margin;
+  }
+  if(left < margin) left = margin;
+  if(top + menuRect.height > window.innerHeight - margin){
+    top = rect.top - menuRect.height - 5;
+  }
+  if(top < margin) top = margin;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  menu.style.visibility = 'visible';
 
   menu.addEventListener('click', (e)=>{
     const btn = e.target.closest('button');
@@ -2188,6 +2210,10 @@ function openExpiryMenu(wrapEl, list, id, hasExpiry){
       input.dataset.list = list;
       input.dataset.id = id;
       input.value = '';
+      // Lo ubicamos pegado al producto (no en una esquina fija) para que el
+      // selector de fecha nativo se abra ahí y no tape la barra del navegador.
+      input.style.top = Math.max(8, rect.top) + 'px';
+      input.style.left = Math.max(8, rect.left) + 'px';
       if(input.showPicker){ input.showPicker(); } else { input.click(); }
     } else if(btn.dataset.action === 'clear'){
       setExpiry(list, id, null);
