@@ -206,6 +206,42 @@
     color: var(--ink);
     font-family: inherit;
   }
+  .expiry-custom{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    flex-wrap:wrap;
+  }
+  .expiry-sel{
+    padding: 6px 3px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    font-size: 12.5px;
+    background:#fff;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .expiry-confirm-btn{
+    background: var(--sage);
+    color:#fff;
+    border:none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family: inherit;
+  }
+  .expiry-cancel-btn{
+    background:none;
+    border:none;
+    color: #918f83;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor:pointer;
+    padding: 4px;
+    font-family: inherit;
+  }
   .item button.action{
     border:none;
     background: var(--sage-light);
@@ -1303,6 +1339,7 @@ const I18N = {
     expiryNone: "📅 Vencimiento", expiryToday: "⚠️ Vence hoy", expiryInDays: "Vence en {n} días", expiryTomorrow: "⚠️ Vence mañana", expiryExpired: "🔴 Venció hace {n} días", expiryExpiredToday: "🔴 Venció hoy",
     scanExpiryLabel: "📅 Vencimiento (opcional)",
     expiryQuick3: "🕒 3 días", expiryQuick7: "📅 1 semana", expiryQuick14: "📅 2 semanas", expiryQuick30: "📅 1 mes", expiryQuickCustom: "🗓️ Elegir fecha exacta", expiryQuickClear: "🗑️ Quitar vencimiento",
+    expirySave: "Guardar", expiryCancel: "Cancelar",
     emptyShopTitle: "Nada por comprar.", emptyShopSub: "Cuando algo se acabe, aparecerá aquí.",
     outBtn: "Se acabó", boughtBtn: "Comprado",
     chefEmptyPrompt: "Contame qué tenés ganas de comer y armo algo con lo que hay en tu nevera y alacena.",
@@ -1427,6 +1464,7 @@ const I18N = {
     expiryNone: "📅 Expiry date", expiryToday: "⚠️ Expires today", expiryInDays: "Expires in {n} days", expiryTomorrow: "⚠️ Expires tomorrow", expiryExpired: "🔴 Expired {n} days ago", expiryExpiredToday: "🔴 Expired today",
     scanExpiryLabel: "📅 Expiry date (optional)",
     expiryQuick3: "🕒 3 days", expiryQuick7: "📅 1 week", expiryQuick14: "📅 2 weeks", expiryQuick30: "📅 1 month", expiryQuickCustom: "🗓️ Pick exact date", expiryQuickClear: "🗑️ Remove expiry date",
+    expirySave: "Save", expiryCancel: "Cancel",
     emptyShopTitle: "Nothing to buy.", emptyShopSub: "When something runs out, it'll show up here.",
     outBtn: "Out", boughtBtn: "Bought",
     chefEmptyPrompt: "Tell me what you feel like eating and I'll come up with something from your fridge and pantry.",
@@ -2215,27 +2253,42 @@ function openExpiryMenu(wrapEl, list, id, hasExpiry){
       closeExpiryMenu();
       render();
     } else if(btn.dataset.action === 'custom'){
-      // En vez de un campo flotando arriba de todo (que en algunos celulares
-      // tapaba o interfería con el calendario nativo), ponemos el campo de
-      // fecha directo en el lugar del producto, como cualquier campo normal.
+      // Selector de fecha hecho a mano (día/mes/año con <select> comunes),
+      // para no depender del calendario nativo del celular, que venía dando
+      // problemas de compatibilidad (sobre todo en iPhone/Safari).
       closeExpiryMenu();
       const badge = wrapEl.querySelector('.expiry-badge');
       if(!badge) return;
-      const dateInput = document.createElement('input');
-      dateInput.type = 'date';
-      dateInput.className = 'expiry-inline-input';
-      badge.replaceWith(dateInput);
-      dateInput.addEventListener('change', ()=>{
-        if(dateInput.value) setExpiry(list, id, dateInput.value);
+      const wrap2 = document.createElement('div');
+      wrap2.className = 'expiry-custom';
+      const today = new Date();
+      let defDay = today.getDate(), defMonth = today.getMonth()+1, defYear = today.getFullYear();
+      const currentItem = state[list].find(i => i.id === id);
+      if(currentItem && currentItem.expiry){
+        const [y,m,d] = currentItem.expiry.split('-').map(Number);
+        defYear = y; defMonth = m; defDay = d;
+      }
+      const dayOpts = Array.from({length:31}, (_,i)=>i+1).map(d => `<option value="${d}" ${d===defDay?'selected':''}>${d}</option>`).join('');
+      const monthOpts = Array.from({length:12}, (_,i)=>i+1).map(m => `<option value="${m}" ${m===defMonth?'selected':''}>${String(m).padStart(2,'0')}</option>`).join('');
+      const yearOpts = Array.from({length:4}, (_,i)=>today.getFullYear()+i).map(y => `<option value="${y}" ${y===defYear?'selected':''}>${y}</option>`).join('');
+      wrap2.innerHTML = `
+        <select class="expiry-sel expiry-sel-day">${dayOpts}</select>
+        <select class="expiry-sel expiry-sel-month">${monthOpts}</select>
+        <select class="expiry-sel expiry-sel-year">${yearOpts}</select>
+        <button type="button" class="expiry-confirm-btn">${t('expirySave')}</button>
+        <button type="button" class="expiry-cancel-btn">${t('expiryCancel')}</button>
+      `;
+      badge.replaceWith(wrap2);
+      wrap2.querySelector('.expiry-confirm-btn').addEventListener('click', ()=>{
+        const d = wrap2.querySelector('.expiry-sel-day').value.padStart(2,'0');
+        const m = wrap2.querySelector('.expiry-sel-month').value.padStart(2,'0');
+        const y = wrap2.querySelector('.expiry-sel-year').value;
+        setExpiry(list, id, `${y}-${m}-${d}`);
         render();
       });
-      // En iPhone/Safari, abrir el calendario en el mismo toque que activó
-      // este botón hacía que se confundiera y cerrara solo con una fecha random.
-      // Con un pequeño retraso se evita ese choque.
-      setTimeout(()=>{
-        dateInput.focus();
-        if(dateInput.showPicker){ try{ dateInput.showPicker(); }catch(err){} }
-      }, 60);
+      wrap2.querySelector('.expiry-cancel-btn').addEventListener('click', ()=>{
+        render();
+      });
     } else if(btn.dataset.action === 'clear'){
       setExpiry(list, id, null);
       closeExpiryMenu();
