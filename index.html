@@ -588,6 +588,62 @@
     text-decoration:none;
     cursor:pointer;
   }
+  .welcome-dots{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    margin-bottom: 22px;
+  }
+  .welcome-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background: var(--line);
+  }
+  .welcome-dot.active{
+    background: var(--sage);
+    width:18px;
+    border-radius:4px;
+  }
+  .welcome-skip{
+    background:none;
+    border:none;
+    cursor:pointer;
+    width:100%;
+    font-family: inherit;
+  }
+  .quiz-options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom: 20px;
+  }
+  .quiz-options button{
+    width:100%;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-size: 14.5px;
+    font-weight:600;
+    padding: 13px 16px;
+    border-radius: 12px;
+    cursor:pointer;
+    text-align:left;
+    font-family: inherit;
+  }
+  .quiz-options button:active{
+    background: var(--sage-light);
+    border-color: var(--sage);
+  }
+  .quiz-percent{
+    text-align:center;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 56px;
+    font-weight:700;
+    color: var(--sage);
+    line-height:1;
+    margin-bottom: 8px;
+  }
   .auth-error{
     background: var(--coral-light);
     color: var(--coral);
@@ -1024,6 +1080,32 @@
     <div class="connbadge" id="connbadge" style="display:none;"><span class="led"></span><span id="connlabel">Conectando...</span></div>
   </header>
 
+  <!-- ==== PANTALLA: BIENVENIDA (para quien nunca usó la app) ==== -->
+  <div class="screen" id="welcomeScreen" style="display:none;">
+    <div class="icon" id="welcomeIcon">🧊</div>
+    <h2 id="welcomeSlideTitle">Título</h2>
+    <p class="sub" id="welcomeSlideText">Texto</p>
+    <div class="welcome-dots" id="welcomeDots"></div>
+    <button class="btn-primary" id="welcomeNextBtn">Siguiente</button>
+    <button class="switch-link welcome-skip" id="welcomeSkipBtn">Saltar</button>
+  </div>
+
+  <!-- ==== PANTALLA: QUIZ "¿CUÁNTO TE SIRVE?" ==== -->
+  <div class="screen" id="quizScreen" style="display:none;">
+    <div class="icon" id="quizIcon">🤔</div>
+    <h2 id="quizQuestionTitle">Pregunta</h2>
+    <div class="quiz-options" id="quizOptions"></div>
+    <div class="welcome-dots" id="quizDots"></div>
+  </div>
+
+  <!-- ==== PANTALLA: RESULTADO DEL QUIZ ==== -->
+  <div class="screen" id="quizResultScreen" style="display:none;">
+    <div class="quiz-percent" id="quizResultPercent">0%</div>
+    <h2 id="quizResultTitle">Título</h2>
+    <p class="sub" id="quizResultText">Texto</p>
+    <button class="btn-primary" id="quizResultBtn">Crear mi cuenta gratis</button>
+  </div>
+
   <!-- ==== PANTALLA: LOGIN / REGISTRO ==== -->
   <div class="screen" id="authScreen" style="display:none;">
     <div class="icon">🔐</div>
@@ -1044,6 +1126,7 @@
     <button class="btn-primary" id="authSubmitBtn">Iniciar sesión</button>
 
     <p class="switch-link" id="authSwitchLink">¿No tienes cuenta? <a id="authSwitchAction">Crear una</a></p>
+    <p class="switch-link"><a id="authAboutAction">¿De qué se trata esta app?</a></p>
 
     <p class="legal-footer" id="legalFooter">
       Al continuar, aceptas los <a href="terminos.html" target="_blank">Términos de uso</a> y la <a href="privacidad.html" target="_blank">Política de privacidad</a>.
@@ -1303,6 +1386,25 @@ const GEMINI_MODEL_FALLBACK = "gemini-3.5-flash";
 // ==== IDIOMA / TRANSLATIONS ====
 const I18N = {
   es: {
+    welcome1Title: "🧊 Bienvenido a Mi Nevera", welcome1Text: "Una app simple y gratis para saber siempre qué tenés en la nevera y la alacena, sin anotar nada a mano.",
+    welcome2Title: "📷 Escaneá o hablá", welcome2Text: "Sacale una foto a lo que compraste, escaneá el código de barras, o simplemente decilo por voz. La app lo agrega sola.",
+    welcome3Title: "📅 Nunca más se te vence nada", welcome3Text: "Ponele fecha de vencimiento a tus productos y la app te avisa antes de que se echen a perder.",
+    welcome4Title: "👩‍🍳 Chef IA a tu servicio", welcome4Text: "Pedile una receta y te arma una con lo que ya tenés en casa, priorizando lo que está por vencer.",
+    welcome5Title: "👨‍👩‍👧‍👦 Compartí tu nevera", welcome5Text: "Invitá a tu familia con un código: todos ven y actualizan la misma nevera, en tiempo real.",
+    welcomeNext: "Siguiente", welcomeStart: "Empezar", welcomeSkip: "Saltar intro",
+    authAboutAction: "¿De qué se trata esta app?",
+    quizQ1Title: "¿Con qué frecuencia se te vence algo en la heladera sin darte cuenta?",
+    quizQ1Opt1: "Nunca", quizQ1Opt2: "A veces", quizQ1Opt3: "Seguido", quizQ1Opt4: "Todo el tiempo",
+    quizQ2Title: "Ahora mismo, sin mirar: ¿sabés bien qué tenés en la heladera?",
+    quizQ2Opt1: "Sí, tengo clarísimo", quizQ2Opt2: "Más o menos", quizQ2Opt3: "Ni idea",
+    quizQ3Title: "¿Te pasó de comprar algo que ya tenías en casa?",
+    quizQ3Opt1: "Nunca", quizQ3Opt2: "Alguna vez", quizQ3Opt3: "Bastante seguido",
+    quizQ4Title: "¿Cuántas personas usan la misma heladera en tu casa?",
+    quizQ4Opt1: "Vivo solo/a", quizQ4Opt2: "2 o 3 personas", quizQ4Opt3: "4 o más",
+    quizResultLowTitle: "Te puede servir igual 😊", quizResultLowText: "Por ahora parece que tenés bastante controlado tu inventario, pero la app te puede ahorrar el poco tiempo que sí perdés.",
+    quizResultMidTitle: "Te puede ahorrar bastante 👍", quizResultMidText: "Con tus respuestas, Mi Nevera te puede ahorrar tiempo y evitar algún que otro desperdicio de comida.",
+    quizResultHighTitle: "Sos justo para quien la hicimos 🎯", quizResultHighText: "Con lo que nos contaste, esta app te puede cambiar bastante la rutina: menos vencimientos, menos compras de más, todo más ordenado.",
+    quizResultBtn: "Crear mi cuenta gratis",
     subtitleLoading: "Cargando...", subtitleReady: "Toca un producto cuando se acabe",
     syncOnline: "Sincronizado", syncOffline: "Sin conexión", syncConnecting: "Conectando...",
     captionHelp: "Ayuda", captionCode: "Código", captionLogout: "Salir",
@@ -1428,6 +1530,25 @@ const I18N = {
     }
   },
   en: {
+    welcome1Title: "🧊 Welcome to My Fridge", welcome1Text: "A simple, free app to always know what's in your fridge and pantry, without writing anything down by hand.",
+    welcome2Title: "📷 Scan or speak it", welcome2Text: "Snap a photo of what you bought, scan the barcode, or just say it out loud. The app adds it for you.",
+    welcome3Title: "📅 Nothing expires unnoticed", welcome3Text: "Set an expiry date on your products and the app warns you before they go bad.",
+    welcome4Title: "👩‍🍳 AI Chef on standby", welcome4Text: "Ask for a recipe and it'll build one from what you already have at home, prioritizing what's about to expire.",
+    welcome5Title: "👨‍👩‍👧‍👦 Share your fridge", welcome5Text: "Invite your family with a code: everyone sees and updates the same fridge, in real time.",
+    welcomeNext: "Next", welcomeStart: "Get started", welcomeSkip: "Skip intro",
+    authAboutAction: "What's this app about?",
+    quizQ1Title: "How often does something in your fridge expire without you noticing?",
+    quizQ1Opt1: "Never", quizQ1Opt2: "Sometimes", quizQ1Opt3: "Often", quizQ1Opt4: "All the time",
+    quizQ2Title: "Right now, without looking: do you know what's in your fridge?",
+    quizQ2Opt1: "Yes, totally clear", quizQ2Opt2: "Sort of", quizQ2Opt3: "No idea",
+    quizQ3Title: "Have you ever bought something you already had at home?",
+    quizQ3Opt1: "Never", quizQ3Opt2: "A few times", quizQ3Opt3: "Pretty often",
+    quizQ4Title: "How many people use the same fridge at your place?",
+    quizQ4Opt1: "I live alone", quizQ4Opt2: "2 or 3 people", quizQ4Opt3: "4 or more",
+    quizResultLowTitle: "It can still help 😊", quizResultLowText: "Looks like you already keep your inventory pretty organized, but the app can save you the bit of time you do lose.",
+    quizResultMidTitle: "It can save you quite a bit 👍", quizResultMidText: "Based on your answers, My Fridge can save you time and prevent some food waste.",
+    quizResultHighTitle: "You're exactly who we built this for 🎯", quizResultHighText: "Based on what you told us, this app could really change your routine: fewer expired products, less duplicate shopping, everything more organized.",
+    quizResultBtn: "Create my free account",
     subtitleLoading: "Loading...", subtitleReady: "Tap a product when it runs out",
     syncOnline: "Synced", syncOffline: "Offline", syncConnecting: "Connecting...",
     captionHelp: "Help", captionCode: "Code", captionLogout: "Log out",
@@ -1616,7 +1737,7 @@ db.ref('.info/connected').on('value', (snap) => {
 // ============ AUTENTICACIÓN ============
 
 function showScreen(name){
-  ['authScreen','profileScreen','householdScreen','codeScreen','helpScreen','mapScreen','scanScreen','photoScreen'].forEach(id=>{
+  ['welcomeScreen','quizScreen','quizResultScreen','authScreen','profileScreen','householdScreen','codeScreen','helpScreen','mapScreen','scanScreen','photoScreen'].forEach(id=>{
     document.getElementById(id).style.display = (id === name) ? 'flex' : 'none';
   });
   document.getElementById('mainNav').style.display = (name === null) ? 'flex' : 'none';
@@ -1791,6 +1912,114 @@ document.getElementById('switchNewBtn').addEventListener('click', async ()=>{
   }
 });
 
+const WELCOME_SLIDES = [
+  { icon: '🧊', titleKey: 'welcome1Title', textKey: 'welcome1Text' },
+  { icon: '📷', titleKey: 'welcome2Title', textKey: 'welcome2Text' },
+  { icon: '📅', titleKey: 'welcome3Title', textKey: 'welcome3Text' },
+  { icon: '👩‍🍳', titleKey: 'welcome4Title', textKey: 'welcome4Text' },
+  { icon: '👨‍👩‍👧‍👦', titleKey: 'welcome5Title', textKey: 'welcome5Text' },
+];
+let welcomeIndex = 0;
+
+function renderWelcomeSlide(){
+  const s = WELCOME_SLIDES[welcomeIndex];
+  document.getElementById('welcomeIcon').textContent = s.icon;
+  document.getElementById('welcomeSlideTitle').textContent = t(s.titleKey);
+  document.getElementById('welcomeSlideText').textContent = t(s.textKey);
+  document.getElementById('welcomeDots').innerHTML = WELCOME_SLIDES.map((_,i)=>
+    `<span class="welcome-dot${i===welcomeIndex?' active':''}"></span>`
+  ).join('');
+  document.getElementById('welcomeNextBtn').textContent = (welcomeIndex === WELCOME_SLIDES.length-1) ? t('welcomeStart') : t('welcomeNext');
+  document.getElementById('welcomeSkipBtn').textContent = t('welcomeSkip');
+  document.getElementById('welcomeSkipBtn').style.display = (welcomeIndex === WELCOME_SLIDES.length-1) ? 'none' : 'block';
+}
+
+function finishWelcome(){
+  localStorage.setItem('neveraWelcomeVisto', '1');
+  updateAuthScreenMode();
+  showScreen('authScreen');
+}
+
+document.getElementById('welcomeNextBtn').addEventListener('click', ()=>{
+  if(welcomeIndex < WELCOME_SLIDES.length - 1){
+    welcomeIndex++;
+    renderWelcomeSlide();
+  } else {
+    startQuiz();
+  }
+});
+document.getElementById('welcomeSkipBtn').addEventListener('click', finishWelcome);
+
+document.getElementById('authAboutAction').addEventListener('click', ()=>{
+  welcomeIndex = 0;
+  renderWelcomeSlide();
+  showScreen('welcomeScreen');
+});
+
+// ==== QUIZ "¿CUÁNTO TE SIRVE LA APP?" ====
+const QUIZ_QUESTIONS = [
+  { titleKey: 'quizQ1Title', options: [
+    { key: 'quizQ1Opt1', score: 0 }, { key: 'quizQ1Opt2', score: 1 }, { key: 'quizQ1Opt3', score: 2 }, { key: 'quizQ1Opt4', score: 3 },
+  ]},
+  { titleKey: 'quizQ2Title', options: [
+    { key: 'quizQ2Opt1', score: 0 }, { key: 'quizQ2Opt2', score: 1 }, { key: 'quizQ2Opt3', score: 2 },
+  ]},
+  { titleKey: 'quizQ3Title', options: [
+    { key: 'quizQ3Opt1', score: 0 }, { key: 'quizQ3Opt2', score: 1 }, { key: 'quizQ3Opt3', score: 2 },
+  ]},
+  { titleKey: 'quizQ4Title', options: [
+    { key: 'quizQ4Opt1', score: 0 }, { key: 'quizQ4Opt2', score: 1 }, { key: 'quizQ4Opt3', score: 2 },
+  ]},
+];
+const QUIZ_MAX_SCORE = QUIZ_QUESTIONS.reduce((sum, q) => sum + Math.max(...q.options.map(o => o.score)), 0);
+let quizIndex = 0;
+let quizScore = 0;
+
+function startQuiz(){
+  quizIndex = 0;
+  quizScore = 0;
+  renderQuizQuestion();
+  showScreen('quizScreen');
+}
+
+function renderQuizQuestion(){
+  const q = QUIZ_QUESTIONS[quizIndex];
+  document.getElementById('quizQuestionTitle').textContent = t(q.titleKey);
+  document.getElementById('quizOptions').innerHTML = q.options.map((o, i) =>
+    `<button type="button" data-score="${o.score}">${t(o.key)}</button>`
+  ).join('');
+  document.getElementById('quizDots').innerHTML = QUIZ_QUESTIONS.map((_, i) =>
+    `<span class="welcome-dot${i===quizIndex?' active':''}"></span>`
+  ).join('');
+}
+
+document.getElementById('quizOptions').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  quizScore += parseInt(btn.dataset.score, 10);
+  if(quizIndex < QUIZ_QUESTIONS.length - 1){
+    quizIndex++;
+    renderQuizQuestion();
+  } else {
+    showQuizResult();
+  }
+});
+
+function showQuizResult(){
+  const pct = Math.round((quizScore / QUIZ_MAX_SCORE) * 100);
+  document.getElementById('quizResultPercent').textContent = pct + '%';
+  let titleKey, textKey;
+  if(pct < 34){ titleKey = 'quizResultLowTitle'; textKey = 'quizResultLowText'; }
+  else if(pct < 67){ titleKey = 'quizResultMidTitle'; textKey = 'quizResultMidText'; }
+  else { titleKey = 'quizResultHighTitle'; textKey = 'quizResultHighText'; }
+  document.getElementById('quizResultTitle').textContent = t(titleKey);
+  document.getElementById('quizResultText').textContent = t(textKey);
+  document.getElementById('quizResultBtn').textContent = t('quizResultBtn');
+  showScreen('quizResultScreen');
+}
+
+document.getElementById('quizResultBtn').addEventListener('click', finishWelcome);
+
 document.getElementById('helpBtn').addEventListener('click', ()=> showScreen('helpScreen'));
 document.getElementById('closeHelpBtn').addEventListener('click', ()=> {
   localStorage.setItem('neveraTutorialVisto', '1');
@@ -1944,8 +2173,14 @@ auth.onAuthStateChanged(async (user) => {
   document.getElementById('membersBar').style.display = 'none';
 
   if(!user){
-    updateAuthScreenMode();
-    showScreen('authScreen');
+    if(!localStorage.getItem('neveraWelcomeVisto')){
+      welcomeIndex = 0;
+      renderWelcomeSlide();
+      showScreen('welcomeScreen');
+    } else {
+      updateAuthScreenMode();
+      showScreen('authScreen');
+    }
     return;
   }
 
@@ -2547,6 +2782,7 @@ function applyLanguage(){
   document.getElementById('labelEmail').textContent = t('labelEmail');
   document.getElementById('labelPassword').textContent = t('labelPassword');
   document.getElementById('legalFooter').innerHTML = t('legalFooter');
+  document.getElementById('authAboutAction').textContent = t('authAboutAction');
 
   document.getElementById('householdTitle').textContent = t('householdTitle');
   document.getElementById('householdSub').textContent = t('householdSub');
@@ -2606,6 +2842,15 @@ document.getElementById('langSelect').addEventListener('change', (e)=>{
   lang = e.target.value;
   localStorage.setItem('neveraLang', lang);
   applyLanguage();
+  if(document.getElementById('welcomeScreen').style.display !== 'none'){
+    renderWelcomeSlide();
+  }
+  if(document.getElementById('quizScreen').style.display !== 'none'){
+    renderQuizQuestion();
+  }
+  if(document.getElementById('quizResultScreen').style.display !== 'none'){
+    showQuizResult();
+  }
 });
 
 // ============ MAPA DE SUPERMERCADOS CERCANOS ============
